@@ -4,6 +4,12 @@
   padding: 0;
 }
 
+:root {
+  --blue: #3da9fc;
+  --red: #ef4559;
+  --radius: 4;
+}
+
 body {
   padding: 64px 32px;
   font: 18px/1.5 "Avenir", "Avenir Next", "Helvetica Neue", Arial, sans-serif;
@@ -44,9 +50,54 @@ h3 {
   color: #5f6c7b;
 }
 
+.svg_grid_div {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.svg_grid_solid_line {
+  stroke: #094067;
+  stroke-width: 2;
+}
+
+.svg_grid_transparent_line {
+  stroke: transparent;
+  stroke-width: 2;
+}
+
+.svg_grid_cell {
+  fill: transparent;
+  stroke-width: 0;
+}
+
+.svg_population_dem {
+  fill: var(--blue);
+  stroke-width: 0;
+  r: var(--radius);
+}
+
+.svg_population_rep {
+  fill: var(--red);
+  stroke-width: 0;
+  r: var(--radius);
+}
+
 .method_label {
   color: #5f6c7b;
   font-size: 24px;
+}
+
+.button_text_hover {
+  padding-right: 2px;
+  padding-left: 2px;
+  color: #fffffe;
+}
+
+.button_text {
+  padding-right: 2px;
+  padding-left: 2px;
+  color: #5f6c7b;
 }
 
 a:hover {

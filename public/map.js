@@ -32,7 +32,9 @@ let text_color = '#094067';
 
 // ---------------------------------- CALCULATED VALUES ---------------------------------- //
 
-let party_color = d3.interpolateHcl('#3da9fc', '#ef4559');
+let red_color = getComputedStyle(document.documentElement).getPropertyValue('--red');
+let blue_color = getComputedStyle(document.documentElement).getPropertyValue('--blue');
+let party_color = d3.interpolateHcl(blue_color, red_color);
 let path;
 
 // ---------------------------------- HELPER FUNCTIONS ---------------------------------- //

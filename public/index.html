@@ -48,9 +48,13 @@
       </p>
     </section>
     <div style="margin-top: 1cm;"></div>
-    <div id="button_bar"></div>
+    <div id="button_bar" class="svg_grid_div">
+      <button id="switch_grid" class="button-selected">
+        <span id="button_span" class="button_text">Change Districts</span>
+      </button>
+    </div>
     <div style="margin-top: 2mm;"></div>
-    <div id="demo"></div>
+    <div id="demo" class="svg_grid_div"></div>
     <div style="margin-top: 5mm;"></div>
     <div id="population_bar"></div>
     <section>
@@ -70,19 +74,23 @@
       </p>
     </section>
     <div style="margin-top: 1cm;"></div>
-    <div id="methods">
+    <div id="methods" class="svg_grid_div">
       <div id="cracking_outer">
-        <div id="cracking_label_bar"></div>
+        <div id="cracking_label_bar" class="svg_grid_div">
+          <p class="method_label">Cracking</p>
+        </div>
         <div style="margin-top: 2mm;"></div>
-        <div id="cracking"></div>
+        <div id="cracking" class="svg_grid_div"></div>
         <div style="margin-top: 5mm;"></div>
         <div id="cracking_bar"></div>
       </div>
       <div style="margin-left: 2cm;"></div>
       <div id="packing_outer">
-        <div id="packing_label_bar"></div>
+        <div id="packing_label_bar" class="svg_grid_div">
+          <p class="method_label">Packing</p>
+        </div>
         <div style="margin-top: 2mm;"></div>
-        <div id="packing"></div>
+        <div id="packing" class="svg_grid_div"></div>
         <div style="margin-top: 5mm;"></div>
         <div id="packing_bar"></div>
       </div>
@@ -110,6 +118,7 @@
     <div id="results_bar"></div>
   </main>
 
+  <script src="common.js"></script>
   <script src="map.js"></script>
   <script src="random.js"></script>
   <script src="demo.js"></script>
