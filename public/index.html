@@ -48,15 +48,15 @@
       </p>
     </section>
     <div style="margin-top: 1cm;"></div>
-    <div id="button_bar" class="svg_grid_div">
-      <button id="switch_grid" class="button-selected">
+    <div id="button_bar" class="centered_div">
+      <button id="switch_grid">
         <span id="button_span" class="button_text">Change Districts</span>
       </button>
     </div>
     <div style="margin-top: 2mm;"></div>
-    <div id="demo" class="svg_grid_div"></div>
+    <div id="demo" class="centered_div"></div>
     <div style="margin-top: 5mm;"></div>
-    <div id="population_bar"></div>
+    <div id="population_bar" class="centered_div"></div>
     <section>
       <p>
         The diagram above cuts the space into equally sized districts, however the population of each district varies. The Supreme Court
@@ -74,23 +74,23 @@
       </p>
     </section>
     <div style="margin-top: 1cm;"></div>
-    <div id="methods" class="svg_grid_div">
+    <div id="methods" class="centered_div">
       <div id="cracking_outer">
-        <div id="cracking_label_bar" class="svg_grid_div">
+        <div id="cracking_label_bar" class="centered_div">
           <p class="method_label">Cracking</p>
         </div>
         <div style="margin-top: 2mm;"></div>
-        <div id="cracking" class="svg_grid_div"></div>
+        <div id="cracking" class="centered_div"></div>
         <div style="margin-top: 5mm;"></div>
         <div id="cracking_bar"></div>
       </div>
       <div style="margin-left: 2cm;"></div>
       <div id="packing_outer">
-        <div id="packing_label_bar" class="svg_grid_div">
+        <div id="packing_label_bar" class="centered_div">
           <p class="method_label">Packing</p>
         </div>
         <div style="margin-top: 2mm;"></div>
-        <div id="packing" class="svg_grid_div"></div>
+        <div id="packing" class="centered_div"></div>
         <div style="margin-top: 5mm;"></div>
         <div id="packing_bar"></div>
       </div>
@@ -118,6 +118,13 @@
     <div id="results_bar"></div>
   </main>
 
+  <script src="models/groupedgrid.js"></script>
+  <script src="models/parttowhole.js"></script>
+  <script src="models/idpoint2d.js"></script>
+  <script src="models/points.js"></script>
+  <script src="views/svggrid.js"></script>
+  <script src="views/svgresultbar.js"></script>
+  <script src="views/svgpopulation.js"></script>
   <script src="common.js"></script>
   <script src="map.js"></script>
   <script src="random.js"></script>

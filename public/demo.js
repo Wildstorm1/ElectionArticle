@@ -57,19 +57,28 @@ let grids = [
 ];
 
 function makePopulation(num, pos_obj, noise_obj) {
-  let points = [];
+  let points = new Points();
 
   for (let i = 0; i < num; i++) {
     let x = pos_obj.random();
     let y = pos_obj.random();
-    let party = noise_obj.simplex2(x, y) < 0 ? 'DEM' : 'REP';
-    points.push({ 'x': x, 'y': y, 'party': party });
+    let party = noise_obj.simplex2(x, y) < 0 ? 'dem' : 'rep';
+    let point = new IdPoint2D(x, y, party);
+    points.addPoint(point);
   }
 
   return points;
 }
 
 let population_points = makePopulation(num_points, uniform, noise);
+let overall_results = computeVotingStats(population_points);
+let district_results = [];
+let groups = [];
+
+for (let i = 0; i < grids.length; i++) {
+  groups.push(GroupedGrid.newGridFromArray(grids[i]));
+  district_results.push(computeDelegates(groups[i], population_points));
+}
 
 // ---------------------------------- CORE IMAGE ---------------------------------- //
 
@@ -77,16 +86,20 @@ let canvas = d3.select('#demo').append('svg').attr('width', img_size).attr('heig
 let pop_layer = new SVGPopulationGUI(canvas, img_size, img_size, 'svg_population');
 let grid_layer = new SVGGridGUI(grid_size, grid_size, img_size / grid_size, canvas, 'svg_grid');
 
-createToolTip('demo', demo_app_tag, demo_tooltip_width);
-createResultsBar('population_bar', demo_app_tag, result_bar_height, result_bar_width, result_bar_text_width, result_bar_padding);
+let result_canvas = d3.select('#population_bar').append('svg').attr('width', result_bar_width).attr('height', 2 * result_bar_height + result_bar_padding);
+let overall_bar_layer = new SVGResultBar(result_bar_width, result_bar_height, result_canvas, 'svg_bar');
+let district_bar_layer = new SVGResultBar(result_bar_width, result_bar_height, result_canvas, 'svg_bar').translate(0, result_bar_height + result_bar_padding);
+
+//createToolTip('demo', demo_app_tag, demo_tooltip_width);
 
 // ---------------------------------- APPLICATION ---------------------------------- //
 
 d3.select('#switch_grid')
   .on('click', () => {
-    g_index = (g_index + 1) % grids.length;
-    updateResultsBar(demo_app_tag, grids[g_index], grid_size, grid_size, img_size, population_points, result_bar_height, result_bar_width, result_bar_text_padding, party_color);
-    grid_layer.updateBorders(grids[g_index]);
+    g_index = (g_index + 1) % groups.length;
+    district_bar_layer.updateBar(district_results[g_index]);
+    district_bar_layer.sort(partySorter);
+    grid_layer.updateBorders(groups[g_index]);
   })
   .on('mouseover', () => {
     d3.select('#button_span').attr('class', 'button_text_hover');
@@ -95,7 +108,11 @@ d3.select('#switch_grid')
     d3.select('#button_span').attr('class', 'button_text');
   });
 
-updateResultsBar(demo_app_tag, grids[g_index], grid_size, grid_size, img_size, population_points, result_bar_height, result_bar_width, result_bar_text_padding, party_color);
-pop_layer.updatePopulation(population_points);
-grid_layer.updateBorders(grids[g_index]);
-//plotPopulation('g_population', party_color, circle_radius, population_points);
+district_bar_layer.updateBar(district_results[g_index]);
+district_bar_layer.sort(partySorter);
+overall_bar_layer.updateBar(overall_results);
+overall_bar_layer.sort(partySorter);
+pop_layer.updatePopulation(population_points, (element, style) => {
+  return `${style}_${element.getId()}`;
+});
+grid_layer.updateBorders(groups[g_index]);

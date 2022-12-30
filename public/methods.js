@@ -49,70 +49,55 @@ let packed_model_grid = [
   [3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
 ];
 
-let cracking_points = [];
-let packing_points = [];
+let points_model = new Points();
 
 for (let i = 0; i < m_num_points; i++) {
   let x = uniform_fct.random();
   let y = uniform_fct.random();
-  let party = radial_fct.sample(x, y) < 0 ? 'DEM' : 'REP';
-  cracking_points.push({ 'x': x, 'y': y, 'party': party });
-  packing_points.push({ 'x': x, 'y': y, 'party': party });
+  let party = radial_fct.sample(x, y) < 0 ? 'dem' : 'rep';
+  let point = new IdPoint2D(x, y, party);
+  points_model.addPoint(point);
 }
+
+let cracked_model = GroupedGrid.newGridFromArray(cracked_model_grid);
+let packed_model = GroupedGrid.newGridFromArray(packed_model_grid);
+
+let methods_overall_results = computeVotingStats(points_model);
+let cracked_district_results = computeDelegates(cracked_model, points_model);
+let packed_district_results = computeDelegates(packed_model, points_model);
 
 // ---------------------------------- CORE IMAGE ---------------------------------- //
 
 let cracking_canvas = d3.select('#cracking').append('svg').attr('width', m_img_size).attr('height', m_img_size);
 let cracked_pop = new SVGPopulationGUI(cracking_canvas, m_img_size, m_img_size, 'svg_population');
 let cracked_grid = new SVGGridGUI(m_grid_size, m_grid_size, m_img_size / m_grid_size, cracking_canvas, 'svg_grid');
-cracked_pop.updatePopulation(cracking_points);
-cracked_grid.updateBorders(cracked_model_grid);
+let cracked_canvas = d3.select('#cracking_bar').append('svg').attr('width', m_bar_width).attr('height', 2 * m_bar_height + m_bar_padding);
+let cracked_overall_bar_layer = new SVGResultBar(m_bar_width, m_bar_height, cracked_canvas, 'svg_bar');
+let cracked_district_bar_layer = new SVGResultBar(m_bar_width, m_bar_height, cracked_canvas, 'svg_bar').translate(0, m_bar_height + m_bar_padding);
+cracked_pop.updatePopulation(points_model, (element, style) => {
+  return `${style}_${element.getId()}`;
+});
+cracked_grid.updateBorders(cracked_model);
+cracked_overall_bar_layer.updateBar(methods_overall_results);
+cracked_overall_bar_layer.sort(partySorter);
+cracked_district_bar_layer.updateBar(cracked_district_results);
+cracked_district_bar_layer.sort(partySorter);
 
 let packing_canvas = d3.select('#packing').append('svg').attr('width', m_img_size).attr('height', m_img_size);
 let packed_pop = new SVGPopulationGUI(packing_canvas, m_img_size, m_img_size, 'svg_population');
 let packed_grid = new SVGGridGUI(m_grid_size, m_grid_size, m_img_size / m_grid_size, packing_canvas, 'svg_grid');
-packed_pop.updatePopulation(packing_points);
-packed_grid.updateBorders(packed_model_grid);
-
-/*
-let svg_crack_grid = d3.select('#cracking')
-  .style('display', 'flex')
-  .style('align-items', 'center')
-  .style('justify-content', 'center')
-  .append('svg')
-  .attr('width', m_img_size)
-  .attr('height', m_img_size)
-  .on('mouseover', (event) => { mouseOverSquare(event, m_cracked_tag, cracked_model_grid, m_img_size, m_grid_size); })
-  .on('mouseout', (event) => { mouseOutSquare(event, m_cracked_tag, cracked_model_grid, m_grid_size); })
-  .on('mousemove', (event) => { mouseMoveSquare(event, m_cracked_tag, cracked_model_grid, m_img_size, m_grid_size); });
-let svg_pack_grid = d3.select('#packing')
-  .style('display', 'flex')
-  .style('align-items', 'center')
-  .style('justify-content', 'center')
-  .append('svg')
-  .attr('width', m_img_size)
-  .attr('height', m_img_size)
-  .on('mouseover', (event) => { mouseOverSquare(event, m_packed_tag, packed_model_grid, m_img_size, m_grid_size); })
-  .on('mouseout', (event) => { mouseOutSquare(event, m_packed_tag, packed_model_grid, m_grid_size); })
-  .on('mousemove', (event) => { mouseMoveSquare(event, m_packed_tag, packed_model_grid, m_img_size, m_grid_size); });
-let g_crack_population = svg_crack_grid.append('g')
-  .attr('id', 'g_crack_population');
-let g_pack_population = svg_pack_grid.append('g')
-  .attr('id', 'g_pack_population');
-*/
+let packed_canvas = d3.select('#packing_bar').append('svg').attr('width', m_bar_width).attr('height', 2 * m_bar_height + m_bar_padding);
+let packed_overall_bar_layer = new SVGResultBar(m_bar_width, m_bar_height, packed_canvas, 'svg_bar');
+let packed_district_bar_layer = new SVGResultBar(m_bar_width, m_bar_height, packed_canvas, 'svg_bar').translate(0, m_bar_height + m_bar_padding);
+packed_pop.updatePopulation(points_model, (element, style) => {
+  return `${style}_${element.getId()}`;
+});
+packed_grid.updateBorders(packed_model);
+packed_overall_bar_layer.updateBar(methods_overall_results);
+packed_overall_bar_layer.sort(partySorter);
+packed_district_bar_layer.updateBar(packed_district_results);
+packed_district_bar_layer.sort(partySorter);
 
 // Go and tie text padding properly (measure the bar group size)
-createResultsBar('cracking_bar', m_cracked_tag, m_bar_height, m_bar_width, m_bar_text_width, m_bar_padding);
-createResultsBar('packing_bar', m_packed_tag, m_bar_height, m_bar_width, m_bar_text_width, m_bar_padding);
-updateResultsBar(m_cracked_tag, cracked_model_grid, m_grid_size, m_districts, m_img_size, cracking_points, m_bar_height, m_bar_width, m_bar_text_padding, party_color);
-updateResultsBar(m_packed_tag, packed_model_grid, m_grid_size, m_districts, m_img_size, packing_points, m_bar_height, m_bar_width, m_bar_text_padding, party_color);
-
-createToolTip('cracking', m_cracked_tag, m_tooltip_width);
-createToolTip('packing', m_packed_tag, m_tooltip_width);
-//createGrid('cracking', svg_crack_grid, line_color, m_grid_size, m_square_size);
-//createGrid('packing', svg_pack_grid, line_color, m_grid_size, m_square_size);
-
-//updateBorders('cracking', cracked_model_grid, m_grid_size, line_color);
-//updateBorders('packing', packed_model_grid, m_grid_size, line_color);
-//plotPopulation('g_crack_population', party_color, circle_radius, cracking_points);
-//plotPopulation('g_pack_population', party_color, circle_radius, packing_points);
+//createToolTip('cracking', m_cracked_tag, m_tooltip_width);
+//createToolTip('packing', m_packed_tag, m_tooltip_width);

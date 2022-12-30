@@ -1,177 +1,102 @@
+// Why d3? Makes plotting the geographic data easier.
+// "Perfection is the enemy of profitability," Cuban said. "Perfection is the enemy of success. You don't need to be perfect, because nobody is."
+// Don't feel sorry for yourself (exaggerate your misfortune and experience a sense of hopelessness and helplessness)
 // TODO: I need an api that defines how to define a custom image object
 // TODO: I also want to create some model objects to abstract away the data a bit
-
-// ---------------------------------- GRID GUI ---------------------------------- //
+// TODO: The best api would probably be a bind, draw, update pattern
 
 /*
- * Represents a GUI for a grid of configurable squares
+ * @param points - the points which represent a voter located in a geographic region
  */
-class SVGGridGUI {
-  // Number of columns in the grid
-  #columns;
+function computeVotingStats(points) {
+  let voters = points.getPointsAsArray();
+  let stats = new PartToWhole();
 
-  // Number of row in the grid
-  #rows;
-
-  // The tag to include in the SVG elements styling class
-  #style;
-
-  // An array holding references to each square in the grid
-  #svg_grid;
-
-  // The SVG DOM group element which contains the SVG image elements
-  #svg_group;
-
-  /*
-   * @param parent - the SVG element to attach the line to
-   * @param style_class - the styling class to tag the SVG element with
-   * @param x1 - the x coordinate of the lines starting point
-   * @param y1 - the y coordinate of the lines starting point
-   * @param x2 - the x coordinate of the lines ending point
-   * @param y2 - the y coordinate of the lines ending point
-   * @returns a new SVG line element within the given parent SVG DOM element
-   */
-  static #createLine(parent, style_class, x1, y1, x2, y2) {
-    return parent.append('line')
-      .attr('class', style_class)
-      .attr('x1', x1)
-      .attr('y1', y1)
-      .attr('x2', x2)
-      .attr('y2', y2);
-  }
-
-  /*
-   * @param parent - the SVG element to attach the square to
-   * @param style_class - the styling class to tag the SVG elements with
-   * @param size - the height / width in pixels of the square
-   * @param i - the row index of the square within the grid
-   * @param j - the column index of the square within the grid
-   * @returns a square object containing references to the SVG DOM elements
-   */
-  static #createSquare(parent, style_class, size, i, j) {
-    let square_group = parent.append('g')
-      .attr('transform', `translate(${j * size},${i * size})`);
-    let square = square_group.append('rect')
-      .attr('class', `${style_class}_cell`)
-      .attr('width', size)
-      .attr('height', size);
-    let top_line = SVGGridGUI.#createLine(square_group, `${style_class}_solid_line`, 0, 0, size, 0);
-    let right_line = SVGGridGUI.#createLine(square_group, `${style_class}_solid_line`, size, 0, size, size);
-    let bottom_line = SVGGridGUI.#createLine(square_group, `${style_class}_solid_line`, size, size, 0, size);
-    let left_line = SVGGridGUI.#createLine(square_group, `${style_class}_solid_line`, 0, size, 0, 0);
-    return { rect: square, top: top_line, right: right_line, bottom: bottom_line, left: left_line };
-  }
-
-  /*
-   * @param grid - 2D array filled with cell groupings
-   * @param style_class - the styling class to tag the SVG elements with
-   * @param group_id - the id to compare the given grid cell against
-   * @param i - the row index of the square
-   * @param j - the column index of the square
-   * @returns the CSS class for the edge between grid[i][j] and a square with id group_id, defaulting
-   * to solid if the square is outside the bounds of the grid
-   */
-  static #getGridLineStyle(grid, style_class, group_id, i, j) {
-    if (i < 0 || j < 0 || grid.length === 0 || i >= grid.length || j >= grid[0].length) {
-      return `${style_class}_solid_line`;
+  for (let i = 0; i < voters.length; i++) {
+    let voteId = voters[i].getId();
+    
+    if (!stats.hasPart(voteId)) {
+      stats.setPart(voteId, 0);
     }
 
-    if (grid[i][j] === group_id) {
-      return `${style_class}_transparent_line`;
-    } else {
-      return `${style_class}_solid_line`;
-    }
+    stats.setPart(voteId, stats.getPart(voteId) + 1);
   }
 
-  /*
-   * @param grid_rows - the number of rows in the grid  
-   * @param grid_columns - the number of columns in the grid
-   * @param square_size - the size of a square in the grid in pixels
-   * @param canvas - the SVG DOM element to attach the grid to
-   * @param style_class - the styling class to tag the SVG elements with
-   */
-  constructor(grid_rows, grid_columns, square_size, canvas, style_class) {
-    this.#columns = grid_columns;
-    this.#rows = grid_rows;
-    this.#style = style_class;
-    this.#svg_grid = new Array(grid_rows);
-    this.#svg_group = canvas.append('g');
-
-    // TODO: expose the events!
-    // TODO: really over the top is a layered api to build up an image built from components (really these objects represent a g element)
-
-    for (let i = 0; i < this.#rows; i++) {
-      this.#svg_grid[i] = new Array(this.#columns);
-
-      for (let j = 0; j < this.#columns; j++) {
-        this.#svg_grid[i][j] = SVGGridGUI.#createSquare(this.#svg_group, this.#style, square_size, i, j);
-      }
-    }
-  }
-
-  /*
-   * @param grid - 2D array filled with cell grouping ids
-   * @effects - updates the SVG image to reflect the groupings given in grid
-   * @throws - Error if the grid dimensions do not match the dimensions of the SVG image
-   */
-  updateBorders(grid) {
-    if (grid.length !== this.#rows || grid[0].length !== this.#columns) {
-      throw new Error(`Invalid grid dimensions! Expected ${this.#rows} x ${this.#columns}`);
-    }
-
-    for (let i = 0; i < this.#rows; i++) {
-      for (let j = 0; j < this.#columns; j++) {
-        this.#svg_grid[i][j].left.attr('class', SVGGridGUI.#getGridLineStyle(grid, this.#style, grid[i][j], i, j - 1));
-        this.#svg_grid[i][j].bottom.attr('class', SVGGridGUI.#getGridLineStyle(grid, this.#style, grid[i][j], i + 1, j));
-        this.#svg_grid[i][j].right.attr('class', SVGGridGUI.#getGridLineStyle(grid, this.#style, grid[i][j], i, j + 1));
-        this.#svg_grid[i][j].top.attr('class', SVGGridGUI.#getGridLineStyle(grid, this.#style, grid[i][j], i - 1, j));
-      }
-    }
-  }
+  return stats;
 }
 
-// ---------------------------------- POPULATION GUI ---------------------------------- //
-
 /*
- * Represents an SVG image layer which plots a population of points
+ * @param grid - the grouped grid representing the districts
+ * @param points - the points which represent a voter located in a geographic region
+ * @returns a part-to-whole model holding the delegates chosen in the election
+ * @requires the points to be in normalized form (ie, x in [0, 1], y in [0, 1])
  */
-class SVGPopulationGUI {
-  // The width of the area to plot the points in pixels
-  #width;
+function computeDelegates(grid, points) {
+  let map = new Map();
+  let voters = points.getPointsAsArray();
+  let columns = grid.getGridColumns();
+  let rows = grid.getGridRows();
 
-  // The height of the area to plot the points in pixels
-  #height;
+  for (let i = 0; i < voters.length; i++) {
+    let gi = Math.floor(voters[i].getY() * rows);
+    let gj = Math.floor(voters[i].getX() * columns);
+    let groupId = grid.getCellId(gi, gj);
+    let voteId = voters[i].getId();
 
-  // The tag to include in the SVG elements styling class
-  #style;
+    if (!map.has(groupId)) {
+      map.set(groupId, new Map());
+    }
 
-  // The SVG DOM group element which contains the SVG image elements
-  #svg_group;
+    let groupMap = map.get(groupId);
 
-  constructor(canvas, img_width, img_height, style_class) {
-    this.#width = img_width;
-    this.#height = img_height;
-    this.#style = style_class;
-    this.#svg_group = canvas.append('g');
+    if (!groupMap.has(voteId)) {
+      groupMap.set(voteId, 0);
+    }
+
+    groupMap.set(voteId, groupMap.get(voteId) + 1);
   }
 
-  updatePopulation(population) {
-    this.#svg_group.selectAll('circle')
-      .data(population)
-      .join(
-        function(enter) {
-          return enter.append('circle');
-        },
-        function(update) {
-          return update;
-        },
-        function(exit) {
-          return exit.remove();
-        }
-      )
-      .attr('cx', (d) => { return d.x * this.#width; })
-      .attr('cy', (d) => { return d.y * this.#height; })
-      .attr('class', (d) => { return d.party === 'DEM' ? `${this.#style}_dem`: `${this.#style}_rep`; }); // TODO: make this more flexible?
+  let results = new PartToWhole();
+  let districtKeys = map.keys();
+
+  for (const key of districtKeys) {
+    let groupMap = map.get(key);
+    let groupKeys = groupMap.keys();
+    let maxCount = 0;
+    let maxId = null;
+
+    for (const voteKey of groupKeys) {
+      let voteCount = groupMap.get(voteKey);
+
+      if (voteCount > maxCount) {
+        maxCount = voteCount;
+        maxId = voteKey;
+      }
+    }
+
+    if (!results.hasPart(maxId)) {
+      results.setPart(maxId, 0);
+    }
+
+    results.setPart(maxId, results.getPart(maxId) + 1);
+  }
+
+  return results;
+}
+
+/*
+ * @param a - the element to attempt to swap during sorting
+ * @param b - the element to compare against during sorting
+ * @return -1 if a comes before b, 1 if a comes after b, or 0 if order doesn't matter
+ */
+function partySorter(a, b) {
+  // TODO: better way to do this???? Honestly an ordering function might make more sense than "sorting"
+  if (a['key'] === 'dem' && b['key'] === 'rep') {
+    return -1;
+  } else if (a['key'] === 'rep' && b['key'] === 'dem') {
+    return 1;
+  } else {
+    return 0;
   }
 }
 
@@ -246,136 +171,6 @@ function createToolTip(divid, app_tag, tooltip_w) {
     .append('th')
     .style('border-bottom', '2px solid #ccc')
     .attr('id', `${app_tag}_tooltip_label`);
-}
-
-function createResultsBar(div_id, demo_app_tag, bar_h, bar_w, text_w, bar_pad) {
-  let result_bar = d3.select(`#${div_id}`)
-    .append('div')
-    .style('display', 'flex')
-    .style('align-items', 'center')
-    .style('justify-content', 'center')
-    .append('svg')
-    .attr('width', bar_w + 2 * text_w)
-    .attr('height', 2 * bar_h + 3 * bar_pad);
-  let bar_group = result_bar.append('g')
-    .attr('transform', `translate(${text_w},${bar_pad})`);
-  let popular_vote = bar_group.append('g');
-  popular_vote.append('rect')
-    .attr('id', `${demo_app_tag}_dem_pop_vote`);
-    popular_vote.append('rect')
-    .attr('id', `${demo_app_tag}_rep_pop_vote`);
-  let district_share = bar_group.append('g')
-    .attr('id', `${demo_app_tag}_district_share`)
-    .attr('transform', `translate(0,${bar_pad + bar_h})`);
-
-  createResultsTextLabel(bar_group, `${demo_app_tag}_dem_overall_text`, 0, (bar_h + bar_pad) / 2);
-  createResultsTextLabel(bar_group, `${demo_app_tag}_rep_overall_text`, bar_w, (bar_h + bar_pad) / 2);
-  createResultsTextLabel(bar_group, `${demo_app_tag}_dem_district_text`, 0, 1.5 * (bar_h + bar_pad));
-  createResultsTextLabel(bar_group, `${demo_app_tag}_rep_district_text`, bar_w, 1.5 * (bar_h + bar_pad));
-}
-
-function performCensus(grid, g_size, num_districts, i_size, population) {
-  let district_count = [];
-
-  for (let i = 0; i <= num_districts; i++) {
-    district_count.push({ 'DEM': 0, 'REP': 0, 'TOTAL': 0, 'DISTRICT': i });
-  }
-
-  for (let i = 0; i < population.length; i++) {
-    let party = population[i].party;
-    let gi = Math.floor(population[i].x * g_size);
-    let gj = Math.floor(population[i].y * g_size);
-    district_count[grid[gj][gi]][party]++;
-    district_count[0][party]++;
-  }
-
-  for (let i = 0; i <= num_districts; i++) {
-    district_count[i]['TOTAL'] = district_count[i]['DEM'] + district_count[i]['REP'];
-  }
-
-  return district_count;
-}
-
-function updateResultsBar(app_tag, grid, g_size, districts_num, i_size, population, bar_h, bar_w, text_pad, color_fct) {
-  let census = performCensus(grid, g_size, districts_num, i_size, population);
-
-  let district_width = Math.floor(bar_w / districts_num);
-  let available_width = districts_num * district_width;
-  let dem_percent = census[0]['DEM'] / census[0]['TOTAL'];
-  let rep_percent = census[0]['REP'] / census[0]['TOTAL'];
-  let dem_width = dem_percent * available_width;
-  let rep_width = rep_percent * available_width;
-
-  d3.select(`#${app_tag}_dem_pop_vote`)
-    .attr('width', dem_width)
-    .attr('height', bar_h)
-    .attr('x', 0)
-    .attr('fill', color_fct(0));
-
-  d3.select(`#${app_tag}_rep_pop_vote`)
-    .attr('width', rep_width)
-    .attr('height', bar_h)
-    .attr('x', dem_width)
-    .attr('fill', color_fct(1));
-
-  d3.select(`#${app_tag}_dem_overall_text`)
-    .text(`${Math.round(dem_percent * 1000) / 10}%`);
-
-  d3.select(`#${app_tag}_rep_overall_text`)
-    .text(`${Math.round(rep_percent * 1000) / 10}%`);
-
-  let district_results = d3.rollup(census.slice(1), v => v.length, d => { return d['DEM'] >= d['REP'] ? 'DEM' : 'REP'; });
-
-  d3.select(`#${app_tag}_dem_district_text`)
-    .text(`${district_results.get('DEM')}`);
-
-  d3.select(`#${app_tag}_rep_district_text`)
-    .text(`${district_results.get('REP')}`);
-
-  let label_overall_measures = d3.select(`#${app_tag}_dem_overall_text`).node().getBBox();
-  d3.select(`#${app_tag}_dem_overall_text`)
-    .attr('transform', `translate(${-label_overall_measures.width - text_pad},${0}),scale(1)`);
-
-  let label_district_measures = d3.select(`#${app_tag}_dem_district_text`).node().getBBox();
-  d3.select(`#${app_tag}_dem_district_text`)
-    .attr('transform', `translate(${-label_district_measures.width - text_pad},${0}),scale(1)`);
-
-  d3.select(`#${app_tag}_district_share`)
-    .selectAll('rect')
-    .data(census.slice(1))
-    .join(
-      function(enter) {
-        return enter.append('rect');
-      },
-      function(update) {
-        return update;
-      },
-      function(exit) {
-        return exit.remove();
-      }
-    )
-    .sort((a, b) => {
-      if (a['DEM'] >= a['REP'] && b['REP'] > b['DEM']) {
-        return -1;
-      } else if (a['REP'] > a['DEM'] && b['DEM'] >= b['REP']) {
-        return 1;
-      } else {
-        return a['DISTRICT'] < b['DISTRICT'] ? -1 : 1;
-      }
-    })
-    .attr('width', district_width)
-    .attr('height', bar_h)
-    .attr('x', function(e, i) { return i * district_width; })
-    .attr('id', function(e) { return `${app_tag}_DistrictNo${e['DISTRICT']}`; })
-    .attr('stroke-width', 2)
-    .attr('stroke', 'transparent')
-    .attr('fill', function(e) {
-      if (e['DEM'] >= e['REP']) {
-        return color_fct(0);
-      } else {
-        return color_fct(1);
-      }
-    });
 }
 
 /*
@@ -463,4 +258,159 @@ let g_grid = svg_grid.append('g')
   .on('mouseover', (event) => { mouseOverSquare(event, demo_app_tag, grids[g_index], img_size, grid_size); })
   .on('mouseout', (event) => { mouseOutSquare(event, demo_app_tag, grids[g_index], grid_size); })
   .on('mousemove', (event) => { mouseMoveSquare(event, demo_app_tag, grids[g_index], img_size, grid_size); });
+
+let svg_crack_grid = d3.select('#cracking')
+  .style('display', 'flex')
+  .style('align-items', 'center')
+  .style('justify-content', 'center')
+  .append('svg')
+  .attr('width', m_img_size)
+  .attr('height', m_img_size)
+  .on('mouseover', (event) => { mouseOverSquare(event, m_cracked_tag, cracked_model_grid, m_img_size, m_grid_size); })
+  .on('mouseout', (event) => { mouseOutSquare(event, m_cracked_tag, cracked_model_grid, m_grid_size); })
+  .on('mousemove', (event) => { mouseMoveSquare(event, m_cracked_tag, cracked_model_grid, m_img_size, m_grid_size); });
+let svg_pack_grid = d3.select('#packing')
+  .style('display', 'flex')
+  .style('align-items', 'center')
+  .style('justify-content', 'center')
+  .append('svg')
+  .attr('width', m_img_size)
+  .attr('height', m_img_size)
+  .on('mouseover', (event) => { mouseOverSquare(event, m_packed_tag, packed_model_grid, m_img_size, m_grid_size); })
+  .on('mouseout', (event) => { mouseOutSquare(event, m_packed_tag, packed_model_grid, m_grid_size); })
+  .on('mousemove', (event) => { mouseMoveSquare(event, m_packed_tag, packed_model_grid, m_img_size, m_grid_size); });
+let g_crack_population = svg_crack_grid.append('g')
+  .attr('id', 'g_crack_population');
+let g_pack_population = svg_pack_grid.append('g')
+  .attr('id', 'g_pack_population');
+
+function updateResultsBar(app_tag, grid, g_size, districts_num, i_size, population, bar_h, bar_w, text_pad, color_fct) {
+  let census = performCensus(grid, g_size, districts_num, i_size, population);
+
+  let district_width = Math.floor(bar_w / districts_num);
+  let available_width = districts_num * district_width;
+  let dem_percent = census[0]['DEM'] / census[0]['TOTAL'];
+  let rep_percent = census[0]['REP'] / census[0]['TOTAL'];
+  let dem_width = dem_percent * available_width;
+  let rep_width = rep_percent * available_width;
+
+  d3.select(`#${app_tag}_dem_pop_vote`)
+    .attr('width', dem_width)
+    .attr('height', bar_h)
+    .attr('x', 0)
+    .attr('fill', color_fct(0));
+
+  d3.select(`#${app_tag}_rep_pop_vote`)
+    .attr('width', rep_width)
+    .attr('height', bar_h)
+    .attr('x', dem_width)
+    .attr('fill', color_fct(1));
+
+  d3.select(`#${app_tag}_dem_overall_text`)
+    .text(`${Math.round(dem_percent * 1000) / 10}%`);
+
+  d3.select(`#${app_tag}_rep_overall_text`)
+    .text(`${Math.round(rep_percent * 1000) / 10}%`);
+
+  let district_results = d3.rollup(census.slice(1), v => v.length, d => { return d['DEM'] >= d['REP'] ? 'DEM' : 'REP'; });
+
+  d3.select(`#${app_tag}_dem_district_text`)
+    .text(`${district_results.get('DEM')}`);
+
+  d3.select(`#${app_tag}_rep_district_text`)
+    .text(`${district_results.get('REP')}`);
+
+  let label_overall_measures = d3.select(`#${app_tag}_dem_overall_text`).node().getBBox();
+  d3.select(`#${app_tag}_dem_overall_text`)
+    .attr('transform', `translate(${-label_overall_measures.width - text_pad},${0}),scale(1)`);
+
+  let label_district_measures = d3.select(`#${app_tag}_dem_district_text`).node().getBBox();
+  d3.select(`#${app_tag}_dem_district_text`)
+    .attr('transform', `translate(${-label_district_measures.width - text_pad},${0}),scale(1)`);
+
+  d3.select(`#${app_tag}_district_share`)
+    .selectAll('rect')
+    .data(census.slice(1))
+    .join(
+      function(enter) {
+        return enter.append('rect');
+      },
+      function(update) {
+        return update;
+      },
+      function(exit) {
+        return exit.remove();
+      }
+    )
+    .sort((a, b) => {
+      if (a['DEM'] >= a['REP'] && b['REP'] > b['DEM']) {
+        return -1;
+      } else if (a['REP'] > a['DEM'] && b['DEM'] >= b['REP']) {
+        return 1;
+      } else {
+        return a['DISTRICT'] < b['DISTRICT'] ? -1 : 1;
+      }
+    })
+    .attr('width', district_width)
+    .attr('height', bar_h)
+    .attr('x', function(e, i) { return i * district_width; })
+    .attr('id', function(e) { return `${app_tag}_DistrictNo${e['DISTRICT']}`; })
+    .attr('stroke-width', 2)
+    .attr('stroke', 'transparent')
+    .attr('fill', function(e) {
+      if (e['DEM'] >= e['REP']) {
+        return color_fct(0);
+      } else {
+        return color_fct(1);
+      }
+    });
+}
+
+function performCensus(grid, g_size, num_districts, i_size, population) {
+  let district_count = [];
+
+  for (let i = 0; i <= num_districts; i++) {
+    district_count.push({ 'DEM': 0, 'REP': 0, 'TOTAL': 0, 'DISTRICT': i });
+  }
+
+  for (let i = 0; i < population.length; i++) {
+    let party = population[i].party;
+    let gi = Math.floor(population[i].x * g_size);
+    let gj = Math.floor(population[i].y * g_size);
+    district_count[grid[gj][gi]][party]++;
+    district_count[0][party]++;
+  }
+
+  for (let i = 0; i <= num_districts; i++) {
+    district_count[i]['TOTAL'] = district_count[i]['DEM'] + district_count[i]['REP'];
+  }
+
+  return district_count;
+}
+
+function createResultsBar(div_id, demo_app_tag, bar_h, bar_w, text_w, bar_pad) {
+  let result_bar = d3.select(`#${div_id}`)
+    .append('div')
+    .style('display', 'flex')
+    .style('align-items', 'center')
+    .style('justify-content', 'center')
+    .append('svg')
+    .attr('width', bar_w + 2 * text_w)
+    .attr('height', 2 * bar_h + 3 * bar_pad);
+  let bar_group = result_bar.append('g')
+    .attr('transform', `translate(${text_w},${bar_pad})`);
+  let popular_vote = bar_group.append('g');
+  popular_vote.append('rect')
+    .attr('id', `${demo_app_tag}_dem_pop_vote`);
+    popular_vote.append('rect')
+    .attr('id', `${demo_app_tag}_rep_pop_vote`);
+  let district_share = bar_group.append('g')
+    .attr('id', `${demo_app_tag}_district_share`)
+    .attr('transform', `translate(0,${bar_pad + bar_h})`);
+
+  createResultsTextLabel(bar_group, `${demo_app_tag}_dem_overall_text`, 0, (bar_h + bar_pad) / 2);
+  createResultsTextLabel(bar_group, `${demo_app_tag}_rep_overall_text`, bar_w, (bar_h + bar_pad) / 2);
+  createResultsTextLabel(bar_group, `${demo_app_tag}_dem_district_text`, 0, 1.5 * (bar_h + bar_pad));
+  createResultsTextLabel(bar_group, `${demo_app_tag}_rep_district_text`, bar_w, 1.5 * (bar_h + bar_pad));
+}
 */
