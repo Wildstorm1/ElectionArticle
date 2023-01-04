@@ -90,7 +90,8 @@ let result_canvas = d3.select('#population_bar').append('svg').attr('width', res
 let overall_bar_layer = new SVGResultBar(result_bar_width, result_bar_height, result_canvas, 'svg_bar');
 let district_bar_layer = new SVGResultBar(result_bar_width, result_bar_height, result_canvas, 'svg_bar').translate(0, result_bar_height + result_bar_padding);
 
-//createToolTip('demo', demo_app_tag, demo_tooltip_width);
+let real_tooltip = new ElectionInfoTooltip(d3.select('#tooltip_div', 'tooltip'));
+real_tooltip.updatePosition(0, 0);
 
 // ---------------------------------- APPLICATION ---------------------------------- //
 
@@ -108,6 +109,15 @@ d3.select('#switch_grid')
     d3.select('#button_span').attr('class', 'button_text');
   });
 
+grid_layer.on('mouseover', (event) => {
+  real_tooltip.updatePosition(event.pageX, event.pageY);
+  real_tooltip.showTooltip();
+}).on('mouseout', (event) => {
+  real_tooltip.updatePosition(event.pageX, event.pageY);
+  real_tooltip.hideTooltip();
+}).on('mousemove', (event) => {
+  real_tooltip.updatePosition(event.pageX, event.pageY);
+});
 district_bar_layer.updateBar(district_results[g_index]);
 district_bar_layer.sort(partySorter);
 overall_bar_layer.updateBar(overall_results);

@@ -8,6 +8,9 @@ class SVGGridGUI {
   // Number of row in the grid
   #rows;
 
+  // The size of a grid cell in pixels
+  #square_size;
+
   // The tag to include in the SVG elements styling class
   #style;
 
@@ -16,6 +19,9 @@ class SVGGridGUI {
 
   // The SVG DOM group element which contains the SVG image elements
   #svg_group;
+
+  // The SVG DOM element which serves as the root of the SVG image
+  #svg_canvas;
 
   /*
    * @param parent - the SVG element to attach the line to
@@ -86,22 +92,22 @@ class SVGGridGUI {
    * @param style_class - the styling class to tag the SVG elements with
    */
   constructor(grid_rows, grid_columns, square_size, canvas, style_class) {
+    // TODO: really over the top is a layered api to build up an image built from components (really these objects represent a g element)
     // TODO: check some invariants (ie, rows / cols should be > 0)
 
     this.#columns = grid_columns;
     this.#rows = grid_rows;
+    this.#square_size = square_size;
     this.#style = style_class;
     this.#svg_grid = new Array(grid_rows);
     this.#svg_group = canvas.append('g');
-
-    // TODO: expose the events!
-    // TODO: really over the top is a layered api to build up an image built from components (really these objects represent a g element)
+    this.#svg_canvas = canvas;
 
     for (let i = 0; i < this.#rows; i++) {
       this.#svg_grid[i] = new Array(this.#columns);
 
       for (let j = 0; j < this.#columns; j++) {
-        this.#svg_grid[i][j] = SVGGridGUI.#createSquare(this.#svg_group, this.#style, square_size, i, j);
+        this.#svg_grid[i][j] = SVGGridGUI.#createSquare(this.#svg_group, this.#style, this.#square_size, i, j);
       }
     }
   }
@@ -128,5 +134,27 @@ class SVGGridGUI {
         this.#svg_grid[i][j].top.attr('class', SVGGridGUI.#getGridLineStyle(grid, this.#style, grid.getCellId(i, j), i - 1, j));
       }
     }
+  }
+
+  /*
+   * @param event - The name of the event to attach to the grid
+   * @param callback - The function to call when the event is fired
+   * @requires - The SVG root element must tightly wrap the grid
+   * @effects - Attaches the given event to the root SVG element. When fired, the event will include
+   * a gridCell field indicating the row, column of the cell the event was fired over
+   */
+  on(event, callback) {
+    this.#svg_canvas.on(event, (e) => {
+      let height = this.#rows * this.#square_size;
+      let width = this.#columns * this.#square_size;
+      
+      let i = Math.min(Math.floor((Math.max(0, e.offsetY) / height) * this.#rows), this.#rows - 1);
+      let j = Math.min(Math.floor((Math.max(0, e.offsetX) / width) * this.#columns), this.#columns - 1);
+      
+      e.gridCell = { row: i, column: j };
+      callback(e);
+    });
+
+    return this;
   }
 }

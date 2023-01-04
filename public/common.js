@@ -105,7 +105,7 @@ function partySorter(a, b) {
 function updateDemoTooltip(event, app_tag) {
   d3.select(`#${app_tag}_tooltip`)
     .style('left', `${event.pageX - (demo_tooltip_width / 2)}px`)
-    .style('top', `${event.pageY + demo_tooltip_height_padding}px`);  
+    .style('top', `${event.pageY + demo_tooltip_height_padding}px`);
 }
 
 function mouseOverSquare(event, app_tag, grid, img_s, g_size) {
@@ -153,24 +153,6 @@ function mouseOutSquare(event, app_tag, grid, g_size) {
 function mouseMoveSquare(event, app_tag, grid, img_s, g_size) {
   mouseOutSquare(event, app_tag, grid, g_size);
   mouseOverSquare(event, app_tag, grid, img_s, g_size);
-}
-
-function createToolTip(divid, app_tag, tooltip_w) {
-  let demo_tooltip = d3.select(`#${divid}`).append('div').attr('id', `${app_tag}_tooltip`)
-    .style('position', 'absolute')
-    .style('left', '0px')
-    .style('top', '0px')
-    .style('display', 'none')
-    .style('pointer-events', 'none')
-    .style('background-color', 'rgba(255, 255, 254, 0.9)')
-    .style('box-shadow', '0px 0px 6px 2px rgba(0, 0, 0, 0.28)');
-  let demo_tooltip_table = demo_tooltip.append('table')
-    .style('width', `${tooltip_w}px`);
-  demo_tooltip_table.append('tr')
-    .append('thead')
-    .append('th')
-    .style('border-bottom', '2px solid #ccc')
-    .attr('id', `${app_tag}_tooltip_label`);
 }
 
 /*
@@ -412,5 +394,23 @@ function createResultsBar(div_id, demo_app_tag, bar_h, bar_w, text_w, bar_pad) {
   createResultsTextLabel(bar_group, `${demo_app_tag}_rep_overall_text`, bar_w, (bar_h + bar_pad) / 2);
   createResultsTextLabel(bar_group, `${demo_app_tag}_dem_district_text`, 0, 1.5 * (bar_h + bar_pad));
   createResultsTextLabel(bar_group, `${demo_app_tag}_rep_district_text`, bar_w, 1.5 * (bar_h + bar_pad));
+}
+
+function createToolTip(divid, app_tag, tooltip_w) {
+  let demo_tooltip = d3.select(`#${divid}`).append('div').attr('id', `${app_tag}_tooltip`)
+    .style('position', 'absolute')
+    .style('left', '0px')
+    .style('top', '0px')
+    .style('display', 'none')
+    .style('pointer-events', 'none')
+    .style('background-color', 'rgba(255, 255, 254, 0.9)')
+    .style('box-shadow', '0px 0px 6px 2px rgba(0, 0, 0, 0.28)');
+  let demo_tooltip_table = demo_tooltip.append('table')
+    .style('width', `${tooltip_w}px`);
+  demo_tooltip_table.append('tr')
+    .append('thead')
+    .append('th')
+    .style('border-bottom', '2px solid #ccc')
+    .attr('id', `${app_tag}_tooltip_label`);
 }
 */

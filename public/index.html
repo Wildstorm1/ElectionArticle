@@ -24,98 +24,100 @@
   </header>
 
   <main>
-    <div style="margin-top: 1cm;"></div>
-    <section>
-      <h3>Introduction</h3>
-      <p>
-        In representative democracies, citizens vote for representatives who are sent to create laws and administer the government on their
-        behalf. In the United States, citizens elect representatives to three distinct levels of government: their local municipality,
-        to their state government, and to the federal government.
-      </p>
-      <p>
-        At the federal level, representatives are elected to the House of Representatives every two years. States are apportioned a number of
-        representatives every ten years based on the results of the census. After the census, each state defines geographical regions called
-        districts whose citizens will elect a single representative to the house. Defining localized districts allows the elected representative
-        to cater towards the needs of the communities in the district who elected them.  
-      </p>
-      <p>
-        The laws for who is responsible for drawing and approving districts varies by state, however generally the legislature of a state is
-        given the responsibility of drawing districts. Voting populations tend to not be geographically homogenous, for example densely populated
-        cities tend to vote for Democrats while more sparsely populated regions tend to vote more Republican. As a result, the boundaries of a
-        district can have an effect on the likelihood of certain candidates being elected. This gives an incentive to a states legislature, which
-        may be controlled by a particular party at the time that the districts are redrawn, to choose districts that benefit the party in power.
-        Try the interactive diagram below to see how the chosen districts effect the results of the representatives chosen.
-      </p>
-    </section>
-    <div style="margin-top: 1cm;"></div>
-    <div id="button_bar" class="centered_div">
-      <button id="switch_grid">
-        <span id="button_span" class="button_text">Change Districts</span>
-      </button>
-    </div>
-    <div style="margin-top: 2mm;"></div>
-    <div id="demo" class="centered_div"></div>
-    <div style="margin-top: 5mm;"></div>
-    <div id="population_bar" class="centered_div"></div>
-    <section>
-      <p>
-        The diagram above cuts the space into equally sized districts, however the population of each district varies. The Supreme Court
-        ruled in 1964 that unequally populated districts violated the Equal Protection Clause of the Fourteenth Amendment, since the vote
-        of an individual in one district has different weight than the vote of an individual in another. For legislatures who are choosing
-        districts however, this just adds a constraint on which possible districts it can choose, it does not fix the issue of Gerrymandering.
-      </p>
-      <h3>Gerrymandering Methods</h3>
-      <p>
-        There are two primary methods legislatures can use to construct Gerrymandered districts: cracking and packing. Both methods rely
-        on the idea that one can use census statistics or previous election results to get an idea of how voters are distributed. Using this
-        distribution, the boundaries can be chosen to partition nearby voters into different districts. The core issue is that any votes over
-        the threshold needed to win (50%) or that cannot add up to the needed threshold are effectively wasted, since they are not going
-        towards changing the candidate that is chosen. Explore the two diagrams below comparing the methods.
-      </p>
-    </section>
-    <div style="margin-top: 1cm;"></div>
-    <div id="methods" class="centered_div">
-      <div id="cracking_outer">
-        <div id="cracking_label_bar" class="centered_div">
-          <p class="method_label">Cracking</p>
-        </div>
-        <div style="margin-top: 2mm;"></div>
-        <div id="cracking" class="centered_div"></div>
-        <div style="margin-top: 5mm;"></div>
-        <div id="cracking_bar"></div>
+    <div id="tooltip_div">
+      <div style="margin-top: 1cm;"></div>
+      <section>
+        <h3>Introduction</h3>
+        <p>
+          In representative democracies, citizens vote for representatives who are sent to create laws and administer the government on their
+          behalf. In the United States, citizens elect representatives to three distinct levels of government: their local municipality,
+          to their state government, and to the federal government.
+        </p>
+        <p>
+          At the federal level, representatives are elected to the House of Representatives every two years. States are apportioned a number of
+          representatives every ten years based on the results of the census. After the census, each state defines geographical regions called
+          districts whose citizens will elect a single representative to the house. Defining localized districts allows the elected representative
+          to cater towards the needs of the communities in the district who elected them.  
+        </p>
+        <p>
+          The laws for who is responsible for drawing and approving districts varies by state, however generally the legislature of a state is
+          given the responsibility of drawing districts. Voting populations tend to not be geographically homogenous, for example densely populated
+          cities tend to vote for Democrats while more sparsely populated regions tend to vote more Republican. As a result, the boundaries of a
+          district can have an effect on the likelihood of certain candidates being elected. This gives an incentive to a states legislature, which
+          may be controlled by a particular party at the time that the districts are redrawn, to choose districts that benefit the party in power.
+          Try the interactive diagram below to see how the chosen districts effect the results of the representatives chosen.
+        </p>
+      </section>
+      <div style="margin-top: 1cm;"></div>
+      <div id="button_bar" class="centered_div">
+        <button id="switch_grid">
+          <span id="button_span" class="button_text">Change Districts</span>
+        </button>
       </div>
-      <div style="margin-left: 2cm;"></div>
-      <div id="packing_outer">
-        <div id="packing_label_bar" class="centered_div">
-          <p class="method_label">Packing</p>
+      <div style="margin-top: 2mm;"></div>
+      <div id="demo" class="centered_div"></div>
+      <div style="margin-top: 5mm;"></div>
+      <div id="population_bar" class="centered_div"></div>
+      <section>
+        <p>
+          The diagram above cuts the space into equally sized districts, however the population of each district varies. The Supreme Court
+          ruled in 1964 that unequally populated districts violated the Equal Protection Clause of the Fourteenth Amendment, since the vote
+          of an individual in one district has different weight than the vote of an individual in another. For legislatures who are choosing
+          districts however, this just adds a constraint on which possible districts it can choose, it does not fix the issue of Gerrymandering.
+        </p>
+        <h3>Gerrymandering Methods</h3>
+        <p>
+          There are two primary methods legislatures can use to construct Gerrymandered districts: cracking and packing. Both methods rely
+          on the idea that one can use census statistics or previous election results to get an idea of how voters are distributed. Using this
+          distribution, the boundaries can be chosen to partition nearby voters into different districts. The core issue is that any votes over
+          the threshold needed to win (50%) or that cannot add up to the needed threshold are effectively wasted, since they are not going
+          towards changing the candidate that is chosen. Explore the two diagrams below comparing the methods.
+        </p>
+      </section>
+      <div style="margin-top: 1cm;"></div>
+      <div id="methods" class="centered_div">
+        <div id="cracking_outer">
+          <div id="cracking_label_bar" class="centered_div">
+            <p class="method_label">Cracking</p>
+          </div>
+          <div style="margin-top: 2mm;"></div>
+          <div id="cracking" class="centered_div"></div>
+          <div style="margin-top: 5mm;"></div>
+          <div id="cracking_bar"></div>
         </div>
-        <div style="margin-top: 2mm;"></div>
-        <div id="packing" class="centered_div"></div>
-        <div style="margin-top: 5mm;"></div>
-        <div id="packing_bar"></div>
+        <div style="margin-left: 2cm;"></div>
+        <div id="packing_outer">
+          <div id="packing_label_bar" class="centered_div">
+            <p class="method_label">Packing</p>
+          </div>
+          <div style="margin-top: 2mm;"></div>
+          <div id="packing" class="centered_div"></div>
+          <div style="margin-top: 5mm;"></div>
+          <div id="packing_bar"></div>
+        </div>
       </div>
+      <div style="margin-top: 1cm;"></div>
+      <section>
+        <p>
+          The idea behind cracking is to 'crack' a group of voters who vote similarly, say because they live in a large city, between different
+          districts. This causes a group of voters with similar interests to be unable to attempt to elect the same individual. Packing on the
+          other hand groups voters who vote similarly into one or a small number of districts, leaving the surrounding districts to contain a
+          different voting population.
+        </p>
+        <h3>North Carolina 2012 Elections</h3>
+        <p>
+          Republicans won majorities in both houses of the North Carolina legislature in the 2010 election which coincided with the redistricting
+          process which needed to occur after the 2010 census. The proposed districts were used in both the 2012 and 2014 elections before being
+          invalidated by the North Carolina Supreme Court on the grounds that the districts violated the 1965 Voting Rights Act. Below is a map
+          of North Carolina showing the results of the 2012 House of Representatives elections. You can zoom in and pan around the map, in particular
+          take a look at District 1, District 4, and District 12. Can you tell which methods were used to construct these districts?
+        </p>
+      </section>
+      <div style="margin-top: 1cm;"></div>
+      <div id="chart"></div>
+      <div style="margin-top: 5mm;"></div>
+      <div id="results_bar"></div>
     </div>
-    <div style="margin-top: 1cm;"></div>
-    <section>
-      <p>
-        The idea behind cracking is to 'crack' a group of voters who vote similarly, say because they live in a large city, between different
-        districts. This causes a group of voters with similar interests to be unable to attempt to elect the same individual. Packing on the
-        other hand groups voters who vote similarly into one or a small number of districts, leaving the surrounding districts to contain a
-        different voting population.
-      </p>
-      <h3>North Carolina 2012 Elections</h3>
-      <p>
-        Republicans won majorities in both houses of the North Carolina legislature in the 2010 election which coincided with the redistricting
-        process which needed to occur after the 2010 census. The proposed districts were used in both the 2012 and 2014 elections before being
-        invalidated by the North Carolina Supreme Court on the grounds that the districts violated the 1965 Voting Rights Act. Below is a map
-        of North Carolina showing the results of the 2012 House of Representatives elections. You can zoom in and pan around the map, in particular
-        take a look at District 1, District 4, and District 12. Can you tell which methods were used to construct these districts?
-      </p>
-    </section>
-    <div style="margin-top: 1cm;"></div>
-    <div id="chart"></div>
-    <div style="margin-top: 5mm;"></div>
-    <div id="results_bar"></div>
   </main>
 
   <script src="models/groupedgrid.js"></script>
@@ -125,6 +127,7 @@
   <script src="views/svggrid.js"></script>
   <script src="views/svgresultbar.js"></script>
   <script src="views/svgpopulation.js"></script>
+  <script src="views/tooltip.js"></script>
   <script src="common.js"></script>
   <script src="map.js"></script>
   <script src="random.js"></script>
