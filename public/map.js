@@ -12,6 +12,10 @@
 // https://www.d3indepth.com/shapes/
 // https://datawanderings.com/2018/08/23/changing-dataset-projection-with-ogr2ogr/
 
+// 2018 Texas
+// 2012 Pennsylvania
+// 2014 Maryland
+
 // ---------------------------------- SETTINGS ---------------------------------- //
 
 let img_width = 1000;

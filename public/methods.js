@@ -49,12 +49,14 @@ let packed_model_grid = [
   [3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
 ];
 
+let blue_party_model = new Party('blue', 'Blue');
+let red_party_model = new Party('red', 'Red');
 let points_model = new Points();
 
 for (let i = 0; i < m_num_points; i++) {
   let x = uniform_fct.random();
   let y = uniform_fct.random();
-  let party = radial_fct.sample(x, y) < 0 ? 'dem' : 'rep';
+  let party = radial_fct.sample(x, y) < 0 ? blue_party_model : red_party_model;
   let point = new IdPoint2D(x, y, party);
   points_model.addPoint(point);
 }
@@ -66,6 +68,9 @@ let methods_overall_results = computeVotingStats(points_model);
 let cracked_district_results = computeDelegates(cracked_model, points_model);
 let packed_district_results = computeDelegates(packed_model, points_model);
 
+let cracked_stats = computeDistrictVoterStats(cracked_model, points_model);
+let packed_stats = computeDistrictVoterStats(packed_model, points_model);
+
 // ---------------------------------- CORE IMAGE ---------------------------------- //
 
 let cracking_canvas = d3.select('#cracking').append('svg').attr('width', m_img_size).attr('height', m_img_size);
@@ -73,9 +78,24 @@ let cracked_pop = new SVGPopulationGUI(cracking_canvas, m_img_size, m_img_size, 
 let cracked_grid = new SVGGridGUI(m_grid_size, m_grid_size, m_img_size / m_grid_size, cracking_canvas, 'svg_grid');
 let cracked_canvas = d3.select('#cracking_bar').append('svg').attr('width', m_bar_width).attr('height', 2 * m_bar_height + m_bar_padding);
 let cracked_overall_bar_layer = new SVGResultBar(m_bar_width, m_bar_height, cracked_canvas, 'svg_bar');
+cracked_overall_bar_layer.setStyler(electionBarStyler);
 let cracked_district_bar_layer = new SVGResultBar(m_bar_width, m_bar_height, cracked_canvas, 'svg_bar').translate(0, m_bar_height + m_bar_padding);
+cracked_district_bar_layer.setStyler(electionBarStyler);
 cracked_pop.updatePopulation(points_model, (element, style) => {
-  return `${style}_${element.getId()}`;
+  // TODO: Is this against the law of demeter?
+  return `${style}_${element.getId().getPartyId()}`;
+});
+cracked_grid.on('mouseover', (event) => {
+  tooltip_container.updatePosition(event.pageX, event.pageY);
+  tooltip_container.showTooltip();
+}).on('mouseout', (event) => {
+  tooltip_container.updatePosition(event.pageX, event.pageY);
+  tooltip_container.hideTooltip();
+}).on('mousemove', (event) => {
+  let grid_cell = event.gridCell;
+  let district_id = cracked_model.getCellId(grid_cell.row, grid_cell.column);
+  tooltip_container.update(cracked_stats.get(district_id));
+  tooltip_container.updatePosition(event.pageX, event.pageY);
 });
 cracked_grid.updateBorders(cracked_model);
 cracked_overall_bar_layer.updateBar(methods_overall_results);
@@ -88,9 +108,23 @@ let packed_pop = new SVGPopulationGUI(packing_canvas, m_img_size, m_img_size, 's
 let packed_grid = new SVGGridGUI(m_grid_size, m_grid_size, m_img_size / m_grid_size, packing_canvas, 'svg_grid');
 let packed_canvas = d3.select('#packing_bar').append('svg').attr('width', m_bar_width).attr('height', 2 * m_bar_height + m_bar_padding);
 let packed_overall_bar_layer = new SVGResultBar(m_bar_width, m_bar_height, packed_canvas, 'svg_bar');
+packed_overall_bar_layer.setStyler(electionBarStyler);
 let packed_district_bar_layer = new SVGResultBar(m_bar_width, m_bar_height, packed_canvas, 'svg_bar').translate(0, m_bar_height + m_bar_padding);
+packed_district_bar_layer.setStyler(electionBarStyler);
 packed_pop.updatePopulation(points_model, (element, style) => {
-  return `${style}_${element.getId()}`;
+  return `${style}_${element.getId().getPartyId()}`;
+});
+packed_grid.on('mouseover', (event) => {
+  tooltip_container.updatePosition(event.pageX, event.pageY);
+  tooltip_container.showTooltip();
+}).on('mouseout', (event) => {
+  tooltip_container.updatePosition(event.pageX, event.pageY);
+  tooltip_container.hideTooltip();
+}).on('mousemove', (event) => {
+  let grid_cell = event.gridCell;
+  let district_id = packed_model.getCellId(grid_cell.row, grid_cell.column);
+  tooltip_container.update(packed_stats.get(district_id));
+  tooltip_container.updatePosition(event.pageX, event.pageY);
 });
 packed_grid.updateBorders(packed_model);
 packed_overall_bar_layer.updateBar(methods_overall_results);

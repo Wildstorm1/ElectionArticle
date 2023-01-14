@@ -2,19 +2,20 @@
  * The data-model for a single 2D cartesian point with an associated identifier
  */
 class IdPoint2D {
-  // Number of columns in the grid
+  // The x coordinate of the point
   #x;
 
-  // Number of row in the grid
+  // The y coordinate of the point
   #y;
 
-  // 2D array of cell ids
+  // The id to tag the point with
   #id;
 
   /*
    * @param x - the x coordinate of the point
    * @param y - the y coordinate of the point
    * @param id - the id value attached to the point
+   * @requires id to be immutable
    */
   constructor(x, y, id) {
     this.#x = x;

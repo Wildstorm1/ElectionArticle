@@ -67,6 +67,7 @@ class PartToWhole {
   /*
    * @param key - the key used to identify the part
    * @return the part associated with the key, or null if it does not exist
+   * @requires key to be immutable and comparable with ===
    */
   getPart(key) {
     let result = null;

@@ -8,7 +8,7 @@ class SVGResultBar {
   // The height of the bar in pixels
   #height;
 
-  // The tag to include in the SVG elements styling class
+  // The callback to get styling classes for svg elements
   #style_class;
 
   // An array containing the ordering and percentages being displayed on the bar
@@ -32,10 +32,13 @@ class SVGResultBar {
       let part = this.#parray[i];
 
       let element = this.#svg_group.append('rect')
-        .attr('class', `${ this.#style_class }_${ part.key }`)
         .attr('width', this.#width * part.percent)
         .attr('height', this.#height)
         .attr('x', offset);
+
+      if (this.#style_class) {
+        element.attr('class', this.#style_class(part.key));
+      }
 
       this.#svg_array.push(element);
       offset = offset + this.#width * part.percent;
@@ -58,12 +61,11 @@ class SVGResultBar {
    * @param width - the width of the bar in pixels
    * @param height - the height of the bar in pixels
    * @param canvas - the SVG DOM element to attach the grid to
-   * @param style_class - the styling class to tag the SVG elements with
    */
-  constructor(width, height, canvas, style_class) {
+  constructor(width, height, canvas) {
     this.#width = width;
     this.#height = height;
-    this.#style_class = style_class;
+    this.#style_class = null;
     this.#parray = [];
     this.#svg_array = [];
     this.#svg_group = canvas.append('g');
@@ -110,5 +112,18 @@ class SVGResultBar {
     // TODO: invariants
     this.#svg_group.attr('transform', `translate(${x},${y})`);
     return this;
+  }
+
+  /*
+   * @param callback - the callback function which will be called for each bar
+   */
+  setStyler(callback) {
+    // TODO: can this be called whenever?
+    // TODO: documentation?
+    this.#style_class = callback;
+
+    for (let i = 0; i < this.#svg_array.length; i++) {
+      this.#svg_array[i].attr('class', this.#style_class(this.#parray[i].key));
+    }
   }
 }

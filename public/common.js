@@ -1,12 +1,18 @@
 // Why d3? Makes plotting the geographic data easier.
 // "Perfection is the enemy of profitability," Cuban said. "Perfection is the enemy of success. You don't need to be perfect, because nobody is."
 // Don't feel sorry for yourself (exaggerate your misfortune and experience a sense of hopelessness and helplessness)
+// Neat thing I learned: sometimes if the format of the CSS trait is wrong, nothing will show, and no error is printed.
+// I like to style things extreme to verify they are working, then soften it up.
 // TODO: I need an api that defines how to define a custom image object
 // TODO: I also want to create some model objects to abstract away the data a bit
 // TODO: The best api would probably be a bind, draw, update pattern
+// Part of what is making this messy is that I am trying to do two things: 1) build a set of "building blocks", 2) build the application.
+// Building blocks are nice, but it really requires careful care and design. Me building blocks from other blocks is really just
+// making things messy.
 
 /*
  * @param points - the points which represent a voter located in a geographic region
+ * @requires each point to be an id point
  */
 function computeVotingStats(points) {
   let voters = points.getPointsAsArray();
@@ -27,11 +33,11 @@ function computeVotingStats(points) {
 
 /*
  * @param grid - the grouped grid representing the districts
- * @param points - the points which represent a voter located in a geographic region
- * @returns a part-to-whole model holding the delegates chosen in the election
- * @requires the points to be in normalized form (ie, x in [0, 1], y in [0, 1])
+ * @param points - the points which represent voters located in a geographic region
+ * @return a map of groupid -> voterstats objects, one for each group in grid
+ * @requires each point to be an id point
  */
-function computeDelegates(grid, points) {
+function computeDistrictVoterStats(grid, points) {
   let map = new Map();
   let voters = points.getPointsAsArray();
   let columns = grid.getGridColumns();
@@ -56,29 +62,45 @@ function computeDelegates(grid, points) {
     groupMap.set(voteId, groupMap.get(voteId) + 1);
   }
 
-  let results = new PartToWhole();
+  let results = new Map();
   let districtKeys = map.keys();
 
   for (const key of districtKeys) {
     let groupMap = map.get(key);
     let groupKeys = groupMap.keys();
-    let maxCount = 0;
-    let maxId = null;
+    let voters = new VoterStats(key);
 
     for (const voteKey of groupKeys) {
       let voteCount = groupMap.get(voteKey);
-
-      if (voteCount > maxCount) {
-        maxCount = voteCount;
-        maxId = voteKey;
-      }
+      voters.addVotingBlock(voteKey, voteKey, voteCount);
     }
 
-    if (!results.hasPart(maxId)) {
-      results.setPart(maxId, 0);
+    results.set(key, voters);
+  }
+
+  return results;
+}
+
+/*
+ * @param grid - the grouped grid representing the districts
+ * @param points - the points which represent voters located in a geographic region
+ * @returns a part-to-whole model holding the delegates chosen in the election
+ * @requires the points to be in normalized form (ie, x in [0, 1], y in [0, 1])
+ */
+function computeDelegates(grid, points) {
+  let voters = computeDistrictVoterStats(grid, points);
+  let results = new PartToWhole();
+  let districtKeys = voters.keys();
+
+  for (const key of districtKeys) {
+    let voterStats = voters.get(key);
+    let partyId = voterStats.getTopParty();
+
+    if (!results.hasPart(partyId)) {
+      results.setPart(partyId, 0);
     }
 
-    results.setPart(maxId, results.getPart(maxId) + 1);
+    results.setPart(partyId, results.getPart(partyId) + 1);
   }
 
   return results;
@@ -91,13 +113,21 @@ function computeDelegates(grid, points) {
  */
 function partySorter(a, b) {
   // TODO: better way to do this???? Honestly an ordering function might make more sense than "sorting"
-  if (a['key'] === 'dem' && b['key'] === 'rep') {
+  if (a['key'].getPartyId() === 'blue' && b['key'].getPartyId() === 'red') {
     return -1;
-  } else if (a['key'] === 'rep' && b['key'] === 'dem') {
+  } else if (a['key'].getPartyId() === 'red' && b['key'].getPartyId() === 'blue') {
     return 1;
   } else {
     return 0;
   }
+}
+
+/*
+ * @param element - the partition id assigned to the bar
+ * @return the class to assign to the bar
+ */
+function electionBarStyler(barId) {
+  return `svg_bar_${ barId.getPartyId() }`;
 }
 
 // ---------------------------------- HELPER FUNCTIONS ---------------------------------- //

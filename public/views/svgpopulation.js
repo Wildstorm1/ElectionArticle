@@ -32,7 +32,7 @@ class SVGPopulationGUI {
    * @param points - a Points collection of 2D points to plot
    * @param classGenerator - a function which a point element and a style tag as arguments
    * @effects - updates the plotted points
-   * @requires the points to be normalized 2D cartesian coordinates tagged with an id 
+   * @requires the points to be normalized 2D cartesian coordinates
    */
   updatePopulation(points, classGenerator) {
     // TODO: Should the generator be passed in at a different location
