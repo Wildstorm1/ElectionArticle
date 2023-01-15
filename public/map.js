@@ -87,9 +87,11 @@ let result_bar_group = result_bar.append('g')
 let popular_vote = result_bar_group.append('g')
   .attr('transform', `translate(${0},${0})`);
 popular_vote.append('rect')
-  .attr('id', 'dem_pop_vote');
+  .attr('id', 'dem_pop_vote')
+  .attr('class', 'svg_bar_blue');
 popular_vote.append('rect')
-  .attr('id', 'rep_pop_vote');
+  .attr('id', 'rep_pop_vote')
+  .attr('class', 'svg_bar_red');
 popular_vote.append('rect')
   .attr('id', 'other_pop_vote');
 let district_share = result_bar_group.append('g')
@@ -310,6 +312,7 @@ new Promise(function(resolve) {
     .attr('height', bar_height)
     .attr('x', function(e, i) { return i * district_width; })
     .attr('id', function(e) { return `DistrictBlock${e.properties.District}`; })
+    .attr('class', function(e) { return `svg_bar_${ e.properties.Party === 'DEM' ? 'blue' : 'red' }`; })
     .attr('stroke-width', 2)
     .attr('stroke', 'transparent')
     .attr('fill', function(e) {

@@ -87,9 +87,7 @@ for (let i = 0; i < grids.length; i++) {
 
 // ---------------------------------- CORE IMAGE ---------------------------------- //
 
-let canvas = d3.select('#demo').append('svg').attr('width', img_size).attr('height', img_size);
-let pop_layer = new SVGPopulationGUI(canvas, img_size, img_size, 'svg_population');
-let grid_layer = new SVGGridGUI(grid_size, grid_size, img_size / grid_size, canvas, 'svg_grid');
+let election_grid = new ElectionGridView(document.getElementById('demo'), img_size / grid_size, groups[0], population_points);
 
 let result_canvas = d3.select('#population_bar').append('svg').attr('width', result_bar_width).attr('height', 2 * result_bar_height + result_bar_padding);
 let overall_bar_layer = new SVGResultBar(result_bar_width, result_bar_height, result_canvas, 'svg_bar');
@@ -108,7 +106,7 @@ d3.select('#switch_grid')
     g_index = (g_index + 1) % groups.length;
     district_bar_layer.updateBar(district_results[g_index]);
     district_bar_layer.sort(partySorter);
-    grid_layer.updateBorders(groups[g_index]);
+    election_grid.plotBorders(groups[g_index]);
   })
   .on('mouseover', () => {
     d3.select('#button_span').attr('class', 'button_text_hover');
@@ -117,23 +115,24 @@ d3.select('#switch_grid')
     d3.select('#button_span').attr('class', 'button_text');
   });
 
-grid_layer.on('mouseover', (event) => {
+election_grid.onMouseOver((event) => {
   tooltip_container.updatePosition(event.pageX, event.pageY);
   tooltip_container.showTooltip();
-}).on('mouseout', (event) => {
+});
+
+election_grid.onMouseOut((event) => {
   tooltip_container.updatePosition(event.pageX, event.pageY);
   tooltip_container.hideTooltip();
-}).on('mousemove', (event) => {
+});
+
+election_grid.onMouseMove((event) => {
   let grid_cell = event.gridCell;
   let district_id = groups[g_index].getCellId(grid_cell.row, grid_cell.column);
   tooltip_container.update(grids_stats[g_index].get(district_id));
   tooltip_container.updatePosition(event.pageX, event.pageY);
 });
+
 district_bar_layer.updateBar(district_results[g_index]);
 district_bar_layer.sort(partySorter);
 overall_bar_layer.updateBar(overall_results);
 overall_bar_layer.sort(partySorter);
-pop_layer.updatePopulation(population_points, (element, style) => {
-  return `${style}_${element.getId().getPartyId()}`;
-});
-grid_layer.updateBorders(groups[g_index]);

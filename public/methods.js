@@ -73,65 +73,60 @@ let packed_stats = computeDistrictVoterStats(packed_model, points_model);
 
 // ---------------------------------- CORE IMAGE ---------------------------------- //
 
-let cracking_canvas = d3.select('#cracking').append('svg').attr('width', m_img_size).attr('height', m_img_size);
-let cracked_pop = new SVGPopulationGUI(cracking_canvas, m_img_size, m_img_size, 'svg_population');
-let cracked_grid = new SVGGridGUI(m_grid_size, m_grid_size, m_img_size / m_grid_size, cracking_canvas, 'svg_grid');
+let cracking_grid = new ElectionGridView(document.getElementById('cracking'), m_img_size / m_grid_size, cracked_model, points_model);
 let cracked_canvas = d3.select('#cracking_bar').append('svg').attr('width', m_bar_width).attr('height', 2 * m_bar_height + m_bar_padding);
 let cracked_overall_bar_layer = new SVGResultBar(m_bar_width, m_bar_height, cracked_canvas, 'svg_bar');
 cracked_overall_bar_layer.setStyler(electionBarStyler);
 let cracked_district_bar_layer = new SVGResultBar(m_bar_width, m_bar_height, cracked_canvas, 'svg_bar').translate(0, m_bar_height + m_bar_padding);
 cracked_district_bar_layer.setStyler(electionBarStyler);
-cracked_pop.updatePopulation(points_model, (element, style) => {
-  // TODO: Is this against the law of demeter?
-  return `${style}_${element.getId().getPartyId()}`;
-});
-cracked_grid.on('mouseover', (event) => {
+
+cracking_grid.onMouseOver((event) => {
   tooltip_container.updatePosition(event.pageX, event.pageY);
   tooltip_container.showTooltip();
-}).on('mouseout', (event) => {
+});
+
+cracking_grid.onMouseOut((event) => {
   tooltip_container.updatePosition(event.pageX, event.pageY);
   tooltip_container.hideTooltip();
-}).on('mousemove', (event) => {
+});
+
+cracking_grid.onMouseMove((event) => {
   let grid_cell = event.gridCell;
   let district_id = cracked_model.getCellId(grid_cell.row, grid_cell.column);
   tooltip_container.update(cracked_stats.get(district_id));
   tooltip_container.updatePosition(event.pageX, event.pageY);
 });
-cracked_grid.updateBorders(cracked_model);
+
 cracked_overall_bar_layer.updateBar(methods_overall_results);
 cracked_overall_bar_layer.sort(partySorter);
 cracked_district_bar_layer.updateBar(cracked_district_results);
 cracked_district_bar_layer.sort(partySorter);
 
-let packing_canvas = d3.select('#packing').append('svg').attr('width', m_img_size).attr('height', m_img_size);
-let packed_pop = new SVGPopulationGUI(packing_canvas, m_img_size, m_img_size, 'svg_population');
-let packed_grid = new SVGGridGUI(m_grid_size, m_grid_size, m_img_size / m_grid_size, packing_canvas, 'svg_grid');
+let packing_grid = new ElectionGridView(document.getElementById('packing'), m_img_size / m_grid_size, packed_model, points_model);
 let packed_canvas = d3.select('#packing_bar').append('svg').attr('width', m_bar_width).attr('height', 2 * m_bar_height + m_bar_padding);
 let packed_overall_bar_layer = new SVGResultBar(m_bar_width, m_bar_height, packed_canvas, 'svg_bar');
 packed_overall_bar_layer.setStyler(electionBarStyler);
 let packed_district_bar_layer = new SVGResultBar(m_bar_width, m_bar_height, packed_canvas, 'svg_bar').translate(0, m_bar_height + m_bar_padding);
 packed_district_bar_layer.setStyler(electionBarStyler);
-packed_pop.updatePopulation(points_model, (element, style) => {
-  return `${style}_${element.getId().getPartyId()}`;
-});
-packed_grid.on('mouseover', (event) => {
+
+packing_grid.onMouseOver((event) => {
   tooltip_container.updatePosition(event.pageX, event.pageY);
   tooltip_container.showTooltip();
-}).on('mouseout', (event) => {
+});
+
+packing_grid.onMouseOut((event) => {
   tooltip_container.updatePosition(event.pageX, event.pageY);
   tooltip_container.hideTooltip();
-}).on('mousemove', (event) => {
+});
+
+packing_grid.onMouseMove((event) => {
   let grid_cell = event.gridCell;
   let district_id = packed_model.getCellId(grid_cell.row, grid_cell.column);
   tooltip_container.update(packed_stats.get(district_id));
   tooltip_container.updatePosition(event.pageX, event.pageY);
 });
-packed_grid.updateBorders(packed_model);
+
 packed_overall_bar_layer.updateBar(methods_overall_results);
 packed_overall_bar_layer.sort(partySorter);
 packed_district_bar_layer.updateBar(packed_district_results);
 packed_district_bar_layer.sort(partySorter);
-
-// Go and tie text padding properly (measure the bar group size)
-//createToolTip('cracking', m_cracked_tag, m_tooltip_width);
-//createToolTip('packing', m_packed_tag, m_tooltip_width);
