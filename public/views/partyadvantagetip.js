@@ -67,13 +67,14 @@ class PartyAdvantageTooltip {
     // TODO: invariants?
     // TODO: should the data object be split up? parttowhole sorta covers part of this already?
     // maybe two objects? A voting group info object, and a parttowhole?
+    // This pretty heavily relies on the inside of a party
 
     if (this.#table_body) {
       this.#clear();
     }
 
     let district_number = data.getDistrictNumber();    
-    let parties = data.getPartyIds();
+    let parties = data.getParties();
     parties.sort((a, b) => { return a.getPartyName().localeCompare(b.getPartyName()); });
 
     this.#table_body = this.#root.append('tbody');
@@ -89,12 +90,12 @@ class PartyAdvantageTooltip {
         .text(`${ party_id.getPartyName() }: ${ members }`);
     }
 
-    let top_party_id = data.getTopParty();
-    let advantage = data.getTopPartyAdvantage();
+    let ordered_parties = data.getPartiesByVoters();
+    let advantage = (ordered_parties.length == 1) ? data.getPartyVoters(ordered_parties[0]) : data.getPartyVoters(ordered_parties[0]) - data.getPartyVoters(ordered_parties[1]);
 
     this.#table_body.append('tr')
       .append('td')
       .attr('class', `${ this.#style_class }_table_row`)
-      .text(`${ top_party_id.getPartyName() } Advantage: ${ advantage }`);
+      .text(`${ ordered_parties[0].getPartyName() } Advantage: ${ advantage }`);
   }
 }

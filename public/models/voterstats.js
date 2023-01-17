@@ -5,43 +5,15 @@ class VoterStats {
   // The district number these voters belong to
   #district;
 
-  // A map containing partyid -> members
+  // A map containing party -> members
   #voters_map;
-
-  // A map containing partyid -> party name
-  #party_map;
 
   /*
    * @param district - the district number these voters belong to
    */
   constructor(district) {
     this.#district = district;
-    this.#party_map = new Map();
     this.#voters_map = new Map();
-  }
-
-  /*
-   * @return an ordered list of parties by the number of members they have
-   */
-  #getPartyStats() {
-    let results = [];
-    let keys = this.#voters_map.keys();
-
-    for (const key of keys) {
-      results.push({ Key: key, Voters: this.#voters_map.get(key) });
-    }
-
-    results.sort((a, b) => {
-      if (a.Voters > b.Voters) {
-        return -1;
-      } else if (a.Voters == b.Voters) {
-        return 0;
-      } else {
-        return 1;
-      }
-    });
-
-    return results;
   }
 
   /*
@@ -52,11 +24,11 @@ class VoterStats {
   }
 
   /*
-   * @return an array of all party_ids which voters in this pool may belong to
+   * @return an array of all parties which voters in this pool belong to
    */
-  getPartyIds() {
+  getParties() {
     let results = [];
-    let keys = this.#party_map.keys();
+    let keys = this.#voters_map.keys();
 
     for (const key of keys) {
       results.push(key);
@@ -66,19 +38,35 @@ class VoterStats {
   }
 
   /*
-   * @param party_id - the id of the party to get information about
-   * @return the name of the given party, or null if it is not found among these voters
+   * @return an array of all parties which voters belong to sorted by number of members
    */
-  getPartyName(party_id) {
-    return this.#party_map.get(party_id);
+  getPartiesByVoters() {
+    let results = [];
+    let keys = this.#voters_map.keys();
+
+    for (const key of keys) {
+      results.push(key);
+    }
+
+    results.sort((a, b) => {
+      return this.#voters_map.get(b) - this.#voters_map.get(a);
+    });
+
+    return results;
   }
 
   /*
-   * @param party_id - the id of the party to get information about
-   * @return the number of members in this voting block which identify with the given party
+   * @param party - the party to get the numbers of members of
+   * @return the number of members identify with the given party
+   * @requires party to be comparable via === and non-falsy
+   * @throws Error if party is falsy
    */
-  getPartyVoters(party_id) {
-    let members = this.#voters_map.get(party_id);
+  getPartyVoters(party) {
+    if (!party) {
+      throw new Error('Party is falsy!');
+    }
+
+    let members = this.#voters_map.get(party);
 
     if (!members) {
       return 0;
@@ -88,37 +76,20 @@ class VoterStats {
   }
 
   /*
-   * @param party_id - the id of the party we are adding information about
-   * @param party_name - the name of the party with the given party_id
-   * @param members - the number of members which belong to the given party_id in this voting block
-   * @effects updates the information for the given party_id if it already exists
+   * @param party - the party whose members should be incremented
+   * @effects updates the number of members belonging to the given party
+   * @requires party to be comparable via === and non-falsy
+   * @throws Error if party is falsy
    */
-  addVotingBlock(party_id, party_name, members) {
-    this.#party_map.set(party_id, party_name);
-    this.#voters_map.set(party_id, members);
-  }
-
-  /*
-   * @return the key of the top party in this voting block by members
-   */
-  getTopParty() {
-    let parties = this.#getPartyStats();
-    return parties[0].Key;
-  }
-
-  /*
-   * @return the numerical advantage the top party has over the next largest party
-   * in terms of members within this voting block, or all voters if there is only one party
-   */
-  getTopPartyAdvantage() {
-    let parties = this.#getPartyStats();
-
-    if (parties.length == 1) {
-      return parties[0].Voters;
+  addVoter(party) {
+    if (!party) {
+      throw new Error('Party is falsy!');
     }
 
-    let v1 = parties[0].Voters;
-    let v2 = parties[1].Voters;
-    return v1 - v2;
+    if (!this.#voters_map.has(party)) {
+      this.#voters_map.set(party, 0);
+    }
+
+    this.#voters_map.set(party, this.#voters_map.get(party) + 1);
   }
 }

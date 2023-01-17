@@ -58,36 +58,60 @@ let grids = [
 
 let blue_party = new Party('blue', 'Blue');
 let red_party = new Party('red', 'Red');
+let color_parties = [ blue_party, red_party ];
 
 function makePopulation(num, pos_obj, noise_obj) {
-  let points = new Points();
+  let points = [ new Points(), new Points() ];
 
   for (let i = 0; i < num; i++) {
     let x = pos_obj.random();
     let y = pos_obj.random();
-    let party = noise_obj.simplex2(x, y) < 0 ? blue_party : red_party;
-    let point = new IdPoint2D(x, y, party);
-    points.addPoint(point);
+    let point = new Point2D(x, y);
+    let idx = noise_obj.simplex2(x, y) < 0 ? 0 : 1;
+    points[idx].addPoint(point);
   }
 
   return points;
 }
 
 let population_points = makePopulation(num_points, uniform, noise);
-let overall_results = computeVotingStats(population_points);
+
+// What do I need? For each grid:
+// [Tooltip] For each district, a voterstats of who is in the district (population, party) -> voterstats
+// [NA] An overall voterstats for the whole grid (population, party) -> voterstats
+// [Results bar] A parttowhole containing the breakdown in district representation ([voterstats]) -> parttowhole
+// [Results bar] A parttowhole containing the breakdown of full results (voterstats) -> parttowhole
+
+let overall_results = [];
 let district_results = [];
 let grids_stats = [];
 let groups = [];
 
 for (let i = 0; i < grids.length; i++) {
   groups.push(GroupedGrid.newGridFromArray(grids[i]));
-  district_results.push(computeDelegates(groups[i], population_points));
-  grids_stats.push(computeDistrictVoterStats(groups[i], population_points));
+
+  let num_groups = groups[i].getNumberUniqueIds();
+  let overall_stats = new VoterStats(); // TODO: this has an argument!!!!!
+  let district_stats = [];
+
+  for (let j = 0; j < num_groups; j++) {
+    district_stats.push(new VoterStats(j + 1));
+  }
+
+  for (let j = 0; j < population_points.length; j++) {
+    appendVoterStats(groups[i], population_points[j], color_parties[j], district_stats, overall_stats);
+  }
+
+  district_results.push(computeDelegation(district_stats));
+  grids_stats.push(district_stats);
+  overall_results.push(convertStatsToPartToWhole(overall_stats));
 }
 
 // ---------------------------------- CORE IMAGE ---------------------------------- //
 
-let election_grid = new ElectionGridView(document.getElementById('demo'), img_size / grid_size, groups[0], population_points);
+let election_grid = new ElectionGridView(document.getElementById('demo'), img_size / grid_size, groups[0]);
+election_grid.plotPoints(population_points[0], blue_party);
+election_grid.plotPoints(population_points[1], red_party);
 
 let result_canvas = d3.select('#population_bar').append('svg').attr('width', result_bar_width).attr('height', 2 * result_bar_height + result_bar_padding);
 let overall_bar_layer = new SVGResultBar(result_bar_width, result_bar_height, result_canvas, 'svg_bar');
@@ -105,7 +129,9 @@ d3.select('#switch_grid')
   .on('click', () => {
     g_index = (g_index + 1) % groups.length;
     district_bar_layer.updateBar(district_results[g_index]);
+    overall_bar_layer.updateBar(overall_results[g_index]);
     district_bar_layer.sort(partySorter);
+    overall_bar_layer.sort(partySorter);
     election_grid.plotBorders(groups[g_index]);
   })
   .on('mouseover', () => {
@@ -128,11 +154,11 @@ election_grid.onMouseOut((event) => {
 election_grid.onMouseMove((event) => {
   let grid_cell = event.gridCell;
   let district_id = groups[g_index].getCellId(grid_cell.row, grid_cell.column);
-  tooltip_container.update(grids_stats[g_index].get(district_id));
+  tooltip_container.update(grids_stats[g_index][district_id - 1]);
   tooltip_container.updatePosition(event.pageX, event.pageY);
 });
 
 district_bar_layer.updateBar(district_results[g_index]);
 district_bar_layer.sort(partySorter);
-overall_bar_layer.updateBar(overall_results);
+overall_bar_layer.updateBar(overall_results[g_index]);
 overall_bar_layer.sort(partySorter);

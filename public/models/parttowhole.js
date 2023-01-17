@@ -40,8 +40,14 @@ class PartToWhole {
   /*
    * @param key - the key to search the collection for
    * @return boolean indicating whether the key exists in the collection
+   * @requires key to be immutable and comparable with === and for key not to be falsy
+   * @throws Error if key is falsy
    */
   hasPart(key) {
+    if (!key) {
+      throw new Error('Key is falsy');
+    }
+
     return this.#partsmap.has(key);
   }
 
@@ -49,9 +55,22 @@ class PartToWhole {
    * @param key - the key used to identify the part
    * @param amount - the numeric amount of the part to add to the whole
    * @return the old amount associated with the key if it already exists, null otherwise
+   * @requires amount >= 0 and amount, key are valid and for key to be immutable and comparable with ===
+   * @throws Error if amount < 0 or amount, key are falsy
    */
   setPart(key, amount) {
-    // TODO: the amount should be a number
+    if (!key) {
+      throw new Error('Key is falsy');
+    }
+
+    if (!amount) {
+      throw new Error('Amount is falsy');
+    }
+
+    if (amount < 0) {
+      throw new Error('Amount is negative');
+    }
+
     let result = null;
   
     if (this.#partsmap.has(key)) {
@@ -66,11 +85,16 @@ class PartToWhole {
 
   /*
    * @param key - the key used to identify the part
-   * @return the part associated with the key, or null if it does not exist
-   * @requires key to be immutable and comparable with ===
+   * @return the part associated with the key, or 0 if it does not exist
+   * @requires key to be immutable and comparable with === and key are valid
+   * @throws Error if key are falsy
    */
   getPart(key) {
-    let result = null;
+    if (!key) {
+      throw new Error('Key is falsy');
+    }
+
+    let result = 0;
 
     if (this.#partsmap.has(key)) {
       result = this.#partsmap.get(key);

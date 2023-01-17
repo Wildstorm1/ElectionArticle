@@ -29,9 +29,14 @@ class Points {
   /*
    * @param point - a point to add to the collection
    * @effects adds the given point to the collection
+   * @requires point to be a valid point object
+   * @throws Error if the point is falsy
    */
   addPoint(point) {
-    // TODO: Check the type of point?
+    if (!point) {
+      throw new Error('Point is falsy!');
+    }
+
     this.#parray.push(point);
   }
 

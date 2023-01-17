@@ -169,6 +169,10 @@ class SVGGridGUI {
    * @requires callback to be a function which accepts a single argument
    */
   onMouseOver(callback) {
+    if (!callback) {
+      throw new Error('Callback is falsy!');
+    }
+
     this.#svg_canvas.addEventListener('mouseover', (e) => { this.#handleMouseEvent(e, callback); });
   }
 
@@ -179,6 +183,10 @@ class SVGGridGUI {
    * @requires callback to be a function which accepts a single argument
    */
   onMouseOut(callback) {
+    if (!callback) {
+      throw new Error('Callback is falsy!');
+    }
+
     this.#svg_canvas.addEventListener('mouseout', (e) => { this.#handleMouseEvent(e, callback); });
   }
 
@@ -189,6 +197,10 @@ class SVGGridGUI {
    * @requires callback to be a function which accepts a single argument
    */
   onMouseMove(callback) {
+    if (!callback) {
+      throw new Error('Callback is falsy!');
+    }
+
     this.#svg_canvas.addEventListener('mousemove', (e) => { this.#handleMouseEvent(e, callback); });
   }
 }
@@ -222,42 +234,46 @@ class SVGPopulationGUI {
 
   /*
    * @param points - a Points collection of 2D points to plot
-   * @effects - updates the plotted points
-   * @requires each point to be a IdPoint2D tagged with a Party and for the coordinates to be normalized
+   * @param class_name - a string to apply as the points CSS Class
+   * @effects - updates the plotted points to include the given points
+   * @requires each point to be a Point2D and for its coordinates to be normalized
    * @throws Error if a point is invalid
    */
-  plotPopulation(points) {
+  plotPoints(points, class_name) {
+    let data = points.getPointsAsArray();
+
+    for (let i = 0; i < data.length; i++) {
+      let element = data[i];
+      let x = element.getX();
+      let y = element.getY();
+
+      if (x < 0 || x > 1) {
+        throw new Error('X coordinate not normalized');
+      }
+
+      if (y < 0 || y > 1) {
+        throw new Error('Y coordinate not normalized');
+      }
+
+      let circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circle.setAttribute('class', class_name);
+      circle.setAttribute('cx', x * this.#width);
+      circle.setAttribute('cy', y * this.#height);
+
+      this.#svg_group.appendChild(circle);
+      this.#points.push(circle);
+    }
+  }
+
+  /*
+   * @effects removes all points from the DOM
+   */
+  clearPoints() {
     for (let i = 0; i < this.#points.length; i++) {
       this.#points[i].remove();
     }
 
     this.#points = [];
-    let data = points.getPointsAsArray();
-
-    for (let i = 0; i < data.length; i++) {
-      let element = data[i];
-
-      if (element.getX() < 0 || element.getX() > 1) {
-        throw new Error('X coordinate not normalized');
-      }
-
-      if (element.getY() < 0 || element.getY() > 1) {
-        throw new Error('Y coordinate not normalized');
-      }
-
-      if (!element.getId || !element.getId().getPartyId) {
-        throw new Error('Point type or id type invalid');
-      }
-
-      let id = element.getId();
-      let circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      circle.setAttribute('class', id.getPartyId()); // TODO: Maybe just ensure it has toString?
-      circle.setAttribute('cx', element.getX() * this.#width);
-      circle.setAttribute('cy', element.getY() * this.#height);
-
-      this.#svg_group.appendChild(circle);
-      this.#points.push(circle);
-    }
   }
 }
 
@@ -275,10 +291,14 @@ class ElectionGridView {
    * @param parent_node - the HTML DOM element to attach the SVG image to
    * @param square_size - the size of a grid cell in pixels
    * @param grid_model - a model describing the borders of the grid
-   * @param population_model - a model describing the points to plot onto the grid
    * @requires square_size > 0
+   * @throws Error if square_size <= 0
    */
-  constructor(parent_node, square_size, grid_model, population_model) {
+  constructor(parent_node, square_size, grid_model) {
+    if (square_size <= 0) {
+      throw new Error('Square size is <= 0');
+    }
+
     const rows = grid_model.getGridRows();
     const columns = grid_model.getGridColumns();
 
@@ -290,28 +310,49 @@ class ElectionGridView {
     this.#population_layer = new SVGPopulationGUI(svg_canvas);
     this.#grid_layer = new SVGGridGUI(svg_canvas, rows, columns, square_size);
 
-    this.#grid_layer.plotBorders(grid_model);
-    this.#population_layer.plotPopulation(population_model);
+    this.plotBorders(grid_model);
   }
 
   /*
    * @param grid_model - a model object which represents a grouped grid
    * @requires the grid_model size to match the constructed sizes
    * @effects updates the SVG image to reflect the groupings given in grid
-   * @throws Error if the grid dimensions do not match the dimensions of the SVG image
+   * @throws Error if the grid dimensions do not match the dimensions of the SVG image or if
+   * grid_model is falsy
    */
   plotBorders(grid_model) {
+    if (!grid_model) {
+      throw new Error('Grid model is falsy!');
+    }
+
     this.#grid_layer.plotBorders(grid_model);
   }
 
   /*
    * @param population_model - a Points collection of 2D points to plot
-   * @effects - updates the plotted points
-   * @requires each point to be a IdPoint2D tagged with a Party and for the coordinates to be normalized
-   * @throws Error if a point is invalid
+   * @param party - the political party the population belongs to, used to style the points
+   * @effects - updates the plotted points to include the points in the population model. Each
+   * point will be assigned the id of the party as its css class
+   * @requires population_model and party are not falsy
+   * @throws Error if population_model or party is falsy
    */
-  plotPopulation(population_model) {
-    this.#population_layer.updatePopulation(population_model);
+  plotPoints(population_model, party) {
+    if (!population_model) {
+      throw new Error('Population model is falsy!');
+    }
+
+    if (!party) {
+      throw new Error('Party is falsy!');
+    }
+
+    this.#population_layer.plotPoints(population_model, party.getPartyId());
+  }
+
+  /*
+   * @effects removes all points from the DOM
+   */
+  clearPoints() {
+    this.#population_layer.clearPoints();
   }
 
   /*
@@ -321,6 +362,10 @@ class ElectionGridView {
    * @requires callback to be a function which accepts a single argument
    */
   onMouseOver(callback) {
+    if (!callback) {
+      throw new Error('Callback is falsy!');
+    }
+
     this.#grid_layer.onMouseOver(callback);
   }
 
@@ -331,6 +376,10 @@ class ElectionGridView {
    * @requires callback to be a function which accepts a single argument
    */
   onMouseOut(callback) {
+    if (!callback) {
+      throw new Error('Callback is falsy!');
+    }
+
     this.#grid_layer.onMouseOut(callback);
   }
 
@@ -341,6 +390,10 @@ class ElectionGridView {
    * @requires callback to be a function which accepts a single argument
    */
   onMouseMove(callback) {
+    if (!callback) {
+      throw new Error('Callback is falsy!');
+    }
+
     this.#grid_layer.onMouseMove(callback);
   }
 }

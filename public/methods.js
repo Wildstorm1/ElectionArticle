@@ -49,31 +49,60 @@ let packed_model_grid = [
   [3, 3, 3, 3, 3, 3, 3, 3, 3, 3]
 ];
 
-let blue_party_model = new Party('blue', 'Blue');
-let red_party_model = new Party('red', 'Red');
-let points_model = new Points();
+function makeRadialPopulation(num, pos_obj, noise_obj) {
+  let points = [ new Points(), new Points() ];
 
-for (let i = 0; i < m_num_points; i++) {
-  let x = uniform_fct.random();
-  let y = uniform_fct.random();
-  let party = radial_fct.sample(x, y) < 0 ? blue_party_model : red_party_model;
-  let point = new IdPoint2D(x, y, party);
-  points_model.addPoint(point);
+  for (let i = 0; i < num; i++) {
+    let x = pos_obj.random();
+    let y = pos_obj.random();
+    let point = new Point2D(x, y);
+    let idx = noise_obj.sample(x, y) < 0 ? 0 : 1;
+    points[idx].addPoint(point);
+  }
+
+  return points;
 }
+
+let methods_population_points = makeRadialPopulation(m_num_points, uniform_fct, radial_fct);
 
 let cracked_model = GroupedGrid.newGridFromArray(cracked_model_grid);
 let packed_model = GroupedGrid.newGridFromArray(packed_model_grid);
 
-let methods_overall_results = computeVotingStats(points_model);
-let cracked_district_results = computeDelegates(cracked_model, points_model);
-let packed_district_results = computeDelegates(packed_model, points_model);
+let cracked_stats = new VoterStats();
+let packed_stats = new VoterStats();
 
-let cracked_stats = computeDistrictVoterStats(cracked_model, points_model);
-let packed_stats = computeDistrictVoterStats(packed_model, points_model);
+let cracked_district_stats = [];
+let packed_district_stats = [];
+
+let cracked_num_groups = cracked_model.getNumberUniqueIds();
+let packed_num_groups = packed_model.getNumberUniqueIds();
+
+for (let j = 0; j < cracked_num_groups; j++) {
+  cracked_district_stats.push(new VoterStats(j + 1));
+}
+
+for (let j = 0; j < packed_num_groups; j++) {
+  packed_district_stats.push(new VoterStats(j + 1));
+}
+
+for (let j = 0; j < methods_population_points.length; j++) {
+  appendVoterStats(cracked_model, methods_population_points[j], color_parties[j], cracked_district_stats, cracked_stats);
+}
+
+for (let j = 0; j < methods_population_points.length; j++) {
+  appendVoterStats(packed_model, methods_population_points[j], color_parties[j], packed_district_stats, packed_stats);
+}
+
+let cracked_district_results = computeDelegation(cracked_district_stats);
+let packed_district_results = computeDelegation(packed_district_stats);
+let cracked_overall_results = convertStatsToPartToWhole(cracked_stats);
+let packed_overall_results = convertStatsToPartToWhole(packed_stats);
 
 // ---------------------------------- CORE IMAGE ---------------------------------- //
 
-let cracking_grid = new ElectionGridView(document.getElementById('cracking'), m_img_size / m_grid_size, cracked_model, points_model);
+let cracking_grid = new ElectionGridView(document.getElementById('cracking'), m_img_size / m_grid_size, cracked_model);
+cracking_grid.plotPoints(methods_population_points[0], blue_party);
+cracking_grid.plotPoints(methods_population_points[1], red_party);
 let cracked_canvas = d3.select('#cracking_bar').append('svg').attr('width', m_bar_width).attr('height', 2 * m_bar_height + m_bar_padding);
 let cracked_overall_bar_layer = new SVGResultBar(m_bar_width, m_bar_height, cracked_canvas, 'svg_bar');
 cracked_overall_bar_layer.setStyler(electionBarStyler);
@@ -93,16 +122,18 @@ cracking_grid.onMouseOut((event) => {
 cracking_grid.onMouseMove((event) => {
   let grid_cell = event.gridCell;
   let district_id = cracked_model.getCellId(grid_cell.row, grid_cell.column);
-  tooltip_container.update(cracked_stats.get(district_id));
+  tooltip_container.update(cracked_district_stats[district_id - 1]);
   tooltip_container.updatePosition(event.pageX, event.pageY);
 });
 
-cracked_overall_bar_layer.updateBar(methods_overall_results);
+cracked_overall_bar_layer.updateBar(cracked_overall_results);
 cracked_overall_bar_layer.sort(partySorter);
 cracked_district_bar_layer.updateBar(cracked_district_results);
 cracked_district_bar_layer.sort(partySorter);
 
-let packing_grid = new ElectionGridView(document.getElementById('packing'), m_img_size / m_grid_size, packed_model, points_model);
+let packing_grid = new ElectionGridView(document.getElementById('packing'), m_img_size / m_grid_size, packed_model);
+packing_grid.plotPoints(methods_population_points[0], blue_party);
+packing_grid.plotPoints(methods_population_points[1], red_party);
 let packed_canvas = d3.select('#packing_bar').append('svg').attr('width', m_bar_width).attr('height', 2 * m_bar_height + m_bar_padding);
 let packed_overall_bar_layer = new SVGResultBar(m_bar_width, m_bar_height, packed_canvas, 'svg_bar');
 packed_overall_bar_layer.setStyler(electionBarStyler);
@@ -122,11 +153,11 @@ packing_grid.onMouseOut((event) => {
 packing_grid.onMouseMove((event) => {
   let grid_cell = event.gridCell;
   let district_id = packed_model.getCellId(grid_cell.row, grid_cell.column);
-  tooltip_container.update(packed_stats.get(district_id));
+  tooltip_container.update(packed_district_stats[district_id - 1]);
   tooltip_container.updatePosition(event.pageX, event.pageY);
 });
 
-packed_overall_bar_layer.updateBar(methods_overall_results);
+packed_overall_bar_layer.updateBar(packed_overall_results);
 packed_overall_bar_layer.sort(partySorter);
 packed_district_bar_layer.updateBar(packed_district_results);
 packed_district_bar_layer.sort(partySorter);
