@@ -9,6 +9,7 @@
 // Part of what is making this messy is that I am trying to do two things: 1) build a set of "building blocks", 2) build the application.
 // Building blocks are nice, but it really requires careful care and design. Me building blocks from other blocks is really just
 // making things messy.
+// Do I really need models which wrap really simple data-structures?
 
 // ---------------------------------- HELPER FUNCTIONS ---------------------------------- //
 
@@ -91,28 +92,4 @@ function convertStatsToPartToWhole(voter_stats) {
   }
 
   return ptw;
-}
-
-/*
- * @param a - the element to attempt to swap during sorting
- * @param b - the element to compare against during sorting
- * @return -1 if a comes before b, 1 if a comes after b, or 0 if order doesn't matter
- */
-function partySorter(a, b) {
-  // TODO: better way to do this???? Honestly an ordering function might make more sense than "sorting"
-  if (a['key'].getPartyId() === 'blue' && b['key'].getPartyId() === 'red') {
-    return -1;
-  } else if (a['key'].getPartyId() === 'red' && b['key'].getPartyId() === 'blue') {
-    return 1;
-  } else {
-    return 0;
-  }
-}
-
-/*
- * @param element - the partition id assigned to the bar
- * @return the class to assign to the bar
- */
-function electionBarStyler(barId) {
-  return `svg_bar_${ barId.getPartyId() }`;
 }

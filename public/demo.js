@@ -59,6 +59,9 @@ let grids = [
 let blue_party = new Party('blue', 'Blue');
 let red_party = new Party('red', 'Red');
 let color_parties = [ blue_party, red_party ];
+let party_order = new KeyOrdering(2);
+party_order.setBarKey(0, blue_party);
+party_order.setBarKey(1, red_party);
 
 function makePopulation(num, pos_obj, noise_obj) {
   let points = [ new Points(), new Points() ];
@@ -75,12 +78,6 @@ function makePopulation(num, pos_obj, noise_obj) {
 }
 
 let population_points = makePopulation(num_points, uniform, noise);
-
-// What do I need? For each grid:
-// [Tooltip] For each district, a voterstats of who is in the district (population, party) -> voterstats
-// [NA] An overall voterstats for the whole grid (population, party) -> voterstats
-// [Results bar] A parttowhole containing the breakdown in district representation ([voterstats]) -> parttowhole
-// [Results bar] A parttowhole containing the breakdown of full results (voterstats) -> parttowhole
 
 let overall_results = [];
 let district_results = [];
@@ -113,11 +110,10 @@ let election_grid = new ElectionGridView(document.getElementById('demo'), img_si
 election_grid.plotPoints(population_points[0], blue_party);
 election_grid.plotPoints(population_points[1], red_party);
 
-let result_canvas = d3.select('#population_bar').append('svg').attr('width', result_bar_width).attr('height', 2 * result_bar_height + result_bar_padding);
-let overall_bar_layer = new SVGResultBar(result_bar_width, result_bar_height, result_canvas, 'svg_bar');
-overall_bar_layer.setStyler(electionBarStyler);
-let district_bar_layer = new SVGResultBar(result_bar_width, result_bar_height, result_canvas, 'svg_bar').translate(0, result_bar_height + result_bar_padding);
-district_bar_layer.setStyler(electionBarStyler);
+let results_bar = new ComparedResultsView(document.getElementById('population_bar'), result_bar_width, result_bar_height, result_bar_padding);
+results_bar.drawOverallResults(overall_results[0]);
+results_bar.drawDistrictResults(district_results[0]);
+results_bar.orderBars(party_order);
 
 let population_tip = new PartyAdvantageTooltip('tooltip');
 let tooltip_container = new PointedTooltipContainer(d3.select('#tooltip_div'), population_tip, 'tooltip');
@@ -128,10 +124,9 @@ tooltip_container.updatePosition(0, 0);
 d3.select('#switch_grid')
   .on('click', () => {
     g_index = (g_index + 1) % groups.length;
-    district_bar_layer.updateBar(district_results[g_index]);
-    overall_bar_layer.updateBar(overall_results[g_index]);
-    district_bar_layer.sort(partySorter);
-    overall_bar_layer.sort(partySorter);
+    results_bar.drawOverallResults(overall_results[g_index]);
+    results_bar.drawDistrictResults(district_results[g_index]);
+    results_bar.orderBars(party_order);
     election_grid.plotBorders(groups[g_index]);
   })
   .on('mouseover', () => {
@@ -157,8 +152,3 @@ election_grid.onMouseMove((event) => {
   tooltip_container.update(grids_stats[g_index][district_id - 1]);
   tooltip_container.updatePosition(event.pageX, event.pageY);
 });
-
-district_bar_layer.updateBar(district_results[g_index]);
-district_bar_layer.sort(partySorter);
-overall_bar_layer.updateBar(overall_results[g_index]);
-overall_bar_layer.sort(partySorter);

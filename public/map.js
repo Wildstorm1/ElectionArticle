@@ -75,32 +75,7 @@ let g_district = svg.append('g')
 
 // ---------------------------------- RESULTS BAR ---------------------------------- //
 
-let result_bar = d3.select('#results_bar')
-  .style('display', 'flex')
-  .style('align-items', 'center')
-  .style('justify-content', 'center')
-  .append('svg')
-  .attr('width', bar_width + 2 * bar_text_width)
-  .attr('height', 2 * bar_height + 3 * bar_padding);
-let result_bar_group = result_bar.append('g')
-  .attr('transform', `translate(${bar_text_width}, ${bar_padding})`);
-let popular_vote = result_bar_group.append('g')
-  .attr('transform', `translate(${0},${0})`);
-popular_vote.append('rect')
-  .attr('id', 'dem_pop_vote')
-  .attr('class', 'svg_bar_blue');
-popular_vote.append('rect')
-  .attr('id', 'rep_pop_vote')
-  .attr('class', 'svg_bar_red');
-popular_vote.append('rect')
-  .attr('id', 'other_pop_vote');
-let district_share = result_bar_group.append('g')
-  .attr('id', 'district_share')
-  .attr('transform', `translate(${0},${bar_padding + bar_height})`);
-createResultsTextLabel(result_bar_group, 'dem_overall_text', 0, (bar_height + bar_padding) / 2);
-createResultsTextLabel(result_bar_group, 'rep_overall_text', bar_width + bar_text_padding, (bar_height + bar_padding) / 2);
-createResultsTextLabel(result_bar_group, 'dem_district_text', 0, 1.5 * (bar_height + bar_padding));
-createResultsTextLabel(result_bar_group, 'rep_district_text', bar_width + bar_text_padding, 1.5 * (bar_height + bar_padding));
+let result_bar = new ComparedResultsView(document.getElementById('results_bar'), bar_width, bar_height, bar_padding);
 
 // ---------------------------------- ZOOM / PAN ---------------------------------- //
 
@@ -252,76 +227,21 @@ new Promise(function(resolve) {
     .on('mouseout', function(event, element) { onMouseExitDistrict(event, element); })
     .on('mousemove', function(event, element) { onMouseMove(event, element); });
 
-  let district_width = Math.floor((bar_width + 2 * bar_text_padding) / data['Election2012'].Summary[0].districts);
-  let available_width = data['Election2012'].Summary[0].districts * district_width;
-  let nc_dem_percent = data['Election2012'].Summary[0].dem_percent / 100;
-  let nc_rep_percent = data['Election2012'].Summary[0].rep_percent / 100;
-  let nc_rescale = nc_dem_percent + nc_rep_percent;
-  let dem_width = (nc_dem_percent / nc_rescale) * available_width;
-  let rep_width = (nc_rep_percent / nc_rescale) * available_width;
-  
-  d3.select('#dem_pop_vote')
-    .attr('width', dem_width)
-    .attr('height', bar_height)
-    .attr('x', 0)
-    .attr('fill', party_color(0));
-
-  d3.select('#rep_pop_vote')
-    .attr('width', rep_width)
-    .attr('height', bar_height)
-    .attr('x', dem_width)
-    .attr('fill', party_color(1));
-
-  d3.select('#dem_overall_text')
-    .text(`${Math.round(nc_dem_percent * 1000) / 10}%`);
-
-  d3.select('#rep_overall_text')
-    .text(`${Math.round(nc_rep_percent * 1000) / 10}%`);
-
   let nc_district_results = d3.rollup(data['Election2012'].Districts.features, v => v.length, d => d.properties.Party);
+  let delegation_part_to_whole = new PartToWhole();
+  delegation_part_to_whole.setPart(blue_party, nc_district_results.get('DEM'));
+  delegation_part_to_whole.setPart(red_party, nc_district_results.get('REP'));
 
-  d3.select('#dem_district_text')
-    .text(`${nc_district_results.get('DEM')}`);
+  // PROBLEM : these election results are not a full amount....?
+  let nc_dem_percent = data['Election2012'].Summary[0].dem_percent * 100;
+  let nc_rep_percent = data['Election2012'].Summary[0].rep_percent * 100;
+  console.log(nc_dem_percent);
+  console.log(nc_rep_percent);
+  let results_part_to_whole = new PartToWhole();
+  results_part_to_whole.setPart(blue_party, nc_dem_percent);
+  results_part_to_whole.setPart(red_party, nc_rep_percent);
 
-  d3.select('#rep_district_text')
-    .text(`${nc_district_results.get('REP')}`);
-
-  let overall_label_measures = d3.select('#dem_overall_text').node().getBBox();
-  d3.select('#dem_overall_text')
-    .attr('transform', `translate(${-overall_label_measures.width - bar_text_padding},${0}),scale(1)`);
-
-  let district_label_measures = d3.select('#dem_district_text').node().getBBox();
-  d3.select('#dem_district_text')
-    .attr('transform', `translate(${-district_label_measures.width - bar_text_padding},${0}),scale(1)`);
-
-  d3.select('#district_share')
-    .selectAll('rect')
-    .data(data['Election2012'].Districts.features)
-    .enter()
-    .append('rect')
-    .sort((a, b) => {
-      if (a.properties.Party === 'DEM' && b.properties.Party === 'REP') {
-        return -1;
-      } else if (a.properties.Party === 'REP' && b.properties.Party === 'DEM') {
-        return 1;
-      } else {
-        return a.properties.District < b.properties.District ? -1 : 1;
-      }
-    })
-    .attr('width', district_width)
-    .attr('height', bar_height)
-    .attr('x', function(e, i) { return i * district_width; })
-    .attr('id', function(e) { return `DistrictBlock${e.properties.District}`; })
-    .attr('class', function(e) { return `svg_bar_${ e.properties.Party === 'DEM' ? 'blue' : 'red' }`; })
-    .attr('stroke-width', 2)
-    .attr('stroke', 'transparent')
-    .attr('fill', function(e) {
-      if (e.properties.Party === 'DEM') {
-        return party_color(0);
-      } else if (e.properties.Party === 'REP') {
-        return party_color(1);
-      } else {
-        return '#EDD04E';
-      }
-    });
+  result_bar.drawOverallResults(results_part_to_whole);
+  result_bar.drawDistrictResults(delegation_part_to_whole);
+  result_bar.orderBars(party_order);
 });

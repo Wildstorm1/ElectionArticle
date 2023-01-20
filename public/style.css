@@ -58,12 +58,12 @@ h3 {
   justify-content: center;
 }
 
-.solid_line {
+line.solid {
   stroke: #094067;
   stroke-width: 2;
 }
 
-.transparent_line {
+line.transparent {
   stroke: transparent;
   stroke-width: 2;
 }
@@ -85,14 +85,21 @@ circle.red  {
   r: var(--radius);
 }
 
-.svg_bar_blue {
+rect.blue  {
   fill: var(--blue);
   stroke-width: 0;
 }
 
-.svg_bar_red {
+rect.red  {
   fill: var(--red);
   stroke-width: 0;
+}
+
+text {
+  dominant-baseline: middle;
+  text-anchor: middle;
+  fill: #fffffe;
+  font-size: 20px;
 }
 
 .method_label {

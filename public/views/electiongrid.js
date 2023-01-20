@@ -31,7 +31,7 @@ class SVGGridGUI {
   static #createLine(parent, x1, y1, x2, y2) {
     let line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
     parent.appendChild(line);
-    line.setAttribute('class', 'solid_line');
+    line.setAttribute('class', 'solid');
     line.setAttribute('x1', x1);
     line.setAttribute('y1', y1);
     line.setAttribute('x2', x2);
@@ -73,14 +73,14 @@ class SVGGridGUI {
    */
   static #getGridLineClass(grid, group_id, i, j) {
     if (i < 0 || j < 0 || i >= grid.getGridRows() || j >= grid.getGridColumns()) {
-      return 'solid_line';
+      return 'solid';
     }
 
     if (grid.getCellId(i, j) === group_id) {
-      return 'transparent_line';
+      return 'transparent';
     }
 
-    return 'solid_line';
+    return 'solid';
   }
 
   /*
@@ -291,10 +291,18 @@ class ElectionGridView {
    * @param parent_node - the HTML DOM element to attach the SVG image to
    * @param square_size - the size of a grid cell in pixels
    * @param grid_model - a model describing the borders of the grid
-   * @requires square_size > 0
-   * @throws Error if square_size <= 0
+   * @requires square_size > 0 and parent_node / grid_model to be valid objects
+   * @throws Error if square_size <= 0 or parent_node / grid_model are invalid
    */
   constructor(parent_node, square_size, grid_model) {
+    if (!parent_node) {
+      throw new Error('Parent node is falsy');
+    }
+
+    if (!grid_model) {
+      throw new Error('Grid model is falsy');
+    }
+
     if (square_size <= 0) {
       throw new Error('Square size is <= 0');
     }

@@ -103,11 +103,11 @@ let packed_overall_results = convertStatsToPartToWhole(packed_stats);
 let cracking_grid = new ElectionGridView(document.getElementById('cracking'), m_img_size / m_grid_size, cracked_model);
 cracking_grid.plotPoints(methods_population_points[0], blue_party);
 cracking_grid.plotPoints(methods_population_points[1], red_party);
-let cracked_canvas = d3.select('#cracking_bar').append('svg').attr('width', m_bar_width).attr('height', 2 * m_bar_height + m_bar_padding);
-let cracked_overall_bar_layer = new SVGResultBar(m_bar_width, m_bar_height, cracked_canvas, 'svg_bar');
-cracked_overall_bar_layer.setStyler(electionBarStyler);
-let cracked_district_bar_layer = new SVGResultBar(m_bar_width, m_bar_height, cracked_canvas, 'svg_bar').translate(0, m_bar_height + m_bar_padding);
-cracked_district_bar_layer.setStyler(electionBarStyler);
+
+let cracked_bar = new ComparedResultsView(document.getElementById('cracking_bar'), m_bar_width, m_bar_height, m_bar_padding);
+cracked_bar.drawOverallResults(cracked_overall_results);
+cracked_bar.drawDistrictResults(cracked_district_results);
+cracked_bar.orderBars(party_order);
 
 cracking_grid.onMouseOver((event) => {
   tooltip_container.updatePosition(event.pageX, event.pageY);
@@ -126,19 +126,15 @@ cracking_grid.onMouseMove((event) => {
   tooltip_container.updatePosition(event.pageX, event.pageY);
 });
 
-cracked_overall_bar_layer.updateBar(cracked_overall_results);
-cracked_overall_bar_layer.sort(partySorter);
-cracked_district_bar_layer.updateBar(cracked_district_results);
-cracked_district_bar_layer.sort(partySorter);
 
 let packing_grid = new ElectionGridView(document.getElementById('packing'), m_img_size / m_grid_size, packed_model);
 packing_grid.plotPoints(methods_population_points[0], blue_party);
 packing_grid.plotPoints(methods_population_points[1], red_party);
-let packed_canvas = d3.select('#packing_bar').append('svg').attr('width', m_bar_width).attr('height', 2 * m_bar_height + m_bar_padding);
-let packed_overall_bar_layer = new SVGResultBar(m_bar_width, m_bar_height, packed_canvas, 'svg_bar');
-packed_overall_bar_layer.setStyler(electionBarStyler);
-let packed_district_bar_layer = new SVGResultBar(m_bar_width, m_bar_height, packed_canvas, 'svg_bar').translate(0, m_bar_height + m_bar_padding);
-packed_district_bar_layer.setStyler(electionBarStyler);
+
+let packed_bar = new ComparedResultsView(document.getElementById('packing_bar'), m_bar_width, m_bar_height, m_bar_padding);
+packed_bar.drawOverallResults(packed_overall_results);
+packed_bar.drawDistrictResults(packed_district_results);
+packed_bar.orderBars(party_order);
 
 packing_grid.onMouseOver((event) => {
   tooltip_container.updatePosition(event.pageX, event.pageY);
@@ -156,8 +152,3 @@ packing_grid.onMouseMove((event) => {
   tooltip_container.update(packed_district_stats[district_id - 1]);
   tooltip_container.updatePosition(event.pageX, event.pageY);
 });
-
-packed_overall_bar_layer.updateBar(packed_overall_results);
-packed_overall_bar_layer.sort(partySorter);
-packed_district_bar_layer.updateBar(packed_district_results);
-packed_district_bar_layer.sort(partySorter);
