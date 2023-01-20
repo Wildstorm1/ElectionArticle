@@ -232,11 +232,9 @@ new Promise(function(resolve) {
   delegation_part_to_whole.setPart(blue_party, nc_district_results.get('DEM'));
   delegation_part_to_whole.setPart(red_party, nc_district_results.get('REP'));
 
-  // PROBLEM : these election results are not a full amount....?
-  let nc_dem_percent = data['Election2012'].Summary[0].dem_percent * 100;
-  let nc_rep_percent = data['Election2012'].Summary[0].rep_percent * 100;
-  console.log(nc_dem_percent);
-  console.log(nc_rep_percent);
+  // TODO : these election results are not a full amount....? Does this matter? Is rescaling fine?
+  let nc_dem_percent = Number(data['Election2012'].Summary[0].dem_percent);
+  let nc_rep_percent = Number(data['Election2012'].Summary[0].rep_percent);
   let results_part_to_whole = new PartToWhole();
   results_part_to_whole.setPart(blue_party, nc_dem_percent);
   results_part_to_whole.setPart(red_party, nc_rep_percent);

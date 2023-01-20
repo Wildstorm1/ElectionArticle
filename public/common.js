@@ -3,13 +3,13 @@
 // Don't feel sorry for yourself (exaggerate your misfortune and experience a sense of hopelessness and helplessness)
 // Neat thing I learned: sometimes if the format of the CSS trait is wrong, nothing will show, and no error is printed.
 // I like to style things extreme to verify they are working, then soften it up.
-// TODO: I need an api that defines how to define a custom image object
-// TODO: I also want to create some model objects to abstract away the data a bit
-// TODO: The best api would probably be a bind, draw, update pattern
 // Part of what is making this messy is that I am trying to do two things: 1) build a set of "building blocks", 2) build the application.
 // Building blocks are nice, but it really requires careful care and design. Me building blocks from other blocks is really just
-// making things messy.
+// making things messy. Instead, build reusable 'widgets' where appropriate, each widget is self contained (draw wise).
 // Do I really need models which wrap really simple data-structures?
+// Rounding should be done higher up than in the GUI. (ie, it should be done in the model)
+// Styling should happen up towards the top. You can apply some simple class names when you have the same element
+// in the same location but want to differentiate it, but otherwise selection should be enough
 
 // ---------------------------------- HELPER FUNCTIONS ---------------------------------- //
 
