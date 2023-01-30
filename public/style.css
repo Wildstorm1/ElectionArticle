@@ -58,12 +58,12 @@ h3 {
   justify-content: center;
 }
 
-line.solid {
+line.Solid {
   stroke: #094067;
   stroke-width: 2;
 }
 
-line.transparent {
+line.Transparent {
   stroke: transparent;
   stroke-width: 2;
 }
@@ -73,24 +73,24 @@ rect {
   stroke-width: 0;
 }
 
-circle.blue  {
+circle.Blue  {
   fill: var(--blue);
   stroke-width: 0;
   r: var(--radius);
 }
 
-circle.red  {
+circle.Red  {
   fill: var(--red);
   stroke-width: 0;
   r: var(--radius);
 }
 
-rect.blue  {
+rect.Blue  {
   fill: var(--blue);
   stroke-width: 0;
 }
 
-rect.red  {
+rect.Red  {
   fill: var(--red);
   stroke-width: 0;
 }
@@ -107,19 +107,19 @@ text {
   font-size: 24px;
 }
 
-.tooltip_root_visible {
+#DemoTooltip.Visible {
   position: absolute;
   pointer-events: none;
   display: block;
 }
 
-.tooltip_root_invisible {
+#DemoTooltip.Invisible {
   position: absolute;
   pointer-events: none;
   display: none;
 }
 
-.tooltip_div_wrapper {
+#DemoTooltip .Wrapper {
   background-color: #fffffe;
   box-shadow: 0px 0px var(--shadow_width) 2px rgba(0, 0, 0, 0.15);
   padding-top: 10px;
@@ -128,7 +128,7 @@ text {
   padding-right: 12px;
 }
 
-.tooltip_div_pointer {
+#DemoTooltip .Pointer {
   width: var(--pointer_width);
   height: var(--pointer_width);
   transform: rotateY(0deg) rotate(45deg);
@@ -137,30 +137,18 @@ text {
   position: absolute;
 }
 
-.tooltip_table_header {
+#DemoTooltip .Wrapper table thead th {
   border-bottom: 2px solid #094067;
   color: #5f6c7b;
 }
 
-tbody tr td {
+#DemoTooltip .Wrapper table tbody tr td {
   border-bottom: 2px solid #094067;
   color: #5f6c7b;
 }
 
-tbody tr:last-child td {
+#DemoTooltip .Wrapper table tbody tr:last-child td {
   border-bottom: none;
-}
-
-.button_text_hover {
-  padding-right: 2px;
-  padding-left: 2px;
-  color: #fffffe;
-}
-
-.button_text {
-  padding-right: 2px;
-  padding-left: 2px;
-  color: #5f6c7b;
 }
 
 a:hover {
@@ -184,4 +172,16 @@ button:hover {
   background-color:#3da9fc;
   color: #5f6c7b;
   transition: 0.25s;
+}
+
+button span.Hover {
+  padding-right: 2px;
+  padding-left: 2px;
+  color: #fffffe;
+}
+
+button span.NoHover {
+  padding-right: 2px;
+  padding-left: 2px;
+  color: #5f6c7b;
 }

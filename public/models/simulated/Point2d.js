@@ -1,7 +1,7 @@
 /*
- * The data-model for a single 2D cartesian point
+ * Represents a point on a 2D plane
  */
-class Point2D {
+class Point2d {
   // The x coordinate of the point
   #x;
 
@@ -18,23 +18,16 @@ class Point2D {
   }
 
   /*
-   * @returns the x coordinate of the point
+   * @return the x position of the point
    */
   getX() {
     return this.#x;
   }
 
   /*
-   * @returns the y coordinate of the point
+   * @return the y position of the point
    */
   getY() {
     return this.#y;
-  }
-
-  /*
-   * @returns a new point which is an identical copy of the point object
-   */
-  copy() {
-    return new Point2D(this.#x, this.#y);
   }
 }

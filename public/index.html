@@ -50,8 +50,8 @@
       </section>
       <div style="margin-top: 1cm;"></div>
       <div id="button_bar" class="centered_div">
-        <button id="switch_grid">
-          <span id="button_span" class="button_text">Change Districts</span>
+        <button id="GridButton">
+          <span id="GridButtonSpan" class="NoHover">Change Districts</span>
         </button>
       </div>
       <div style="margin-top: 2mm;"></div>
@@ -120,21 +120,22 @@
     </div>
   </main>
 
-  <script src="models/party.js"></script>
-  <script src="models/groupedgrid.js"></script>
-  <script src="models/parttowhole.js"></script>
-  <script src="models/point2d.js"></script>
-  <script src="models/points.js"></script>
-  <script src="models/voterstats.js"></script>
-  <script src="models/keyordering.js"></script>
-  <script src="models/keystyling.js"></script>
-  <script src="views/electiongrid.js"></script>
-  <script src="views/comparedresults.js"></script>
-  <script src="views/partyadvantagetip.js"></script>
-  <script src="views/pointedtooltip.js"></script>
-  <script src="common.js"></script>
-  <script src="map.js"></script>
+  <script src="models/simulated/Cell2d.js"></script>
+  <script src="models/simulated/District.js"></script>
+  <script src="models/simulated/Grid.js"></script>
+  <script src="models/simulated/Party.js"></script>
+  <script src="models/simulated/Point2d.js"></script>
+  <script src="models/simulated/Population.js"></script>
+  <script src="models/simulated/Selector.js"></script>
+  <script src="models/simulated/Voter.js"></script>
+  <script src="views/DistrictAggregator.js"></script>
+  <script src="views/PartyAdvantageList.js"></script>
+  <script src="views/TooltipContainer.js"></script>
+  <script src="views/ResultBar.js"></script>
+  <script src="views/ResultAggregator.js"></script>
+  <script src="views/GridDisplay.js"></script>
   <script src="random.js"></script>
+  <script src="common.js"></script>
   <script src="demo.js"></script>
   <script src="methods.js"></script>
 </body>

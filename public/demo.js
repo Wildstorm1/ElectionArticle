@@ -1,24 +1,13 @@
 // ---------------------------------- SETTINGS ---------------------------------- //
 
-let button_width = 225;
-let button_height = 25;
-let button_height_padding = 15;
-let result_bar_text_width = 54;
-let result_bar_text_padding = 3;
 let result_bar_width = 496;
 let result_bar_height = 40;
 let result_bar_padding = 10;
-let demo_tooltip_width = 180;
-let demo_tooltip_height = 120;
-let demo_tooltip_height_padding = 20;
 let img_size = 396;
 let grid_size = 6;
 let num_points = 500;
-let circle_radius = 4;
 let noise_seed = 17;
 let pop_seed = 12;
-let line_color = '#094067';
-let demo_app_tag = 'demo_tag';
 
 // ---------------------------------- CALCULATED VALUES ---------------------------------- //
 
@@ -28,7 +17,6 @@ let uniform = new Uniform(pop_seed);
 
 // ---------------------------------- CREATE DATA ---------------------------------- //
 
-let g_index = 0;
 let grids = [
   [
     [6, 6, 3, 3, 3, 3],
@@ -56,99 +44,47 @@ let grids = [
   ],
 ];
 
-let blue_party = new Party('blue', 'Blue');
-let red_party = new Party('red', 'Red');
-let color_parties = [ blue_party, red_party ];
-let party_order = new KeyOrdering(2);
-party_order.setBarKey(0, blue_party);
-party_order.setBarKey(1, red_party);
+// ---------------------------------- CONVERT DATA TO MODEL ---------------------------------- //
 
-function makePopulation(num, pos_obj, noise_obj) {
-  let points = [ new Points(), new Points() ];
+let parties = [ new Party('Blue'), new Party('Red') ];
+let population_model_builder = new PopulationBuilder();
 
-  for (let i = 0; i < num; i++) {
-    let x = pos_obj.random();
-    let y = pos_obj.random();
-    let point = new Point2D(x, y);
-    let idx = noise_obj.simplex2(x, y) < 0 ? 0 : 1;
-    points[idx].addPoint(point);
-  }
-
-  return points;
+for (let i = 0; i < num_points; i++) {
+  let x = uniform.random();
+  let y = uniform.random();
+  let point = new Point2d(x * img_size, y * img_size);
+  let party = parties[noise.simplex2(x, y) < 0 ? 0 : 1];
+  population_model_builder.addVoter(new Voter(point, party));
 }
 
-let population_points = makePopulation(num_points, uniform, noise);
-
-let overall_results = [];
-let district_results = [];
-let grids_stats = [];
-let groups = [];
+let population_model = population_model_builder.build();
+let selector_model_builder = new SelectorBuilder().setPopulation(population_model);
+let districts = new Map();
 
 for (let i = 0; i < grids.length; i++) {
-  groups.push(GroupedGrid.newGridFromArray(grids[i]));
-
-  let num_groups = groups[i].getNumberUniqueIds();
-  let overall_stats = new VoterStats(); // TODO: this has an argument!!!!!
-  let district_stats = [];
-
-  for (let j = 0; j < num_groups; j++) {
-    district_stats.push(new VoterStats(j + 1));
-  }
-
-  for (let j = 0; j < population_points.length; j++) {
-    appendVoterStats(groups[i], population_points[j], color_parties[j], district_stats, overall_stats);
-  }
-
-  district_results.push(computeDelegation(district_stats));
-  grids_stats.push(district_stats);
-  overall_results.push(convertStatsToPartToWhole(overall_stats));
+  let grid_model = convertArrayToModel(grids[i], square_size, districts);
+  selector_model_builder.addGrid(grid_model);
 }
 
-// ---------------------------------- CORE IMAGE ---------------------------------- //
+let model = selector_model_builder.build();
 
-let election_grid = new ElectionGridView(document.getElementById('demo'), img_size / grid_size, groups[0]);
-election_grid.plotPoints(population_points[0], blue_party);
-election_grid.plotPoints(population_points[1], red_party);
+// ---------------------------------- SET UP VIEWS/CONTROLLERS ---------------------------------- //
 
-let results_bar = new ComparedResultsView(document.getElementById('population_bar'), result_bar_width, result_bar_height, result_bar_padding);
-results_bar.drawOverallResults(overall_results[0]);
-results_bar.drawDistrictResults(district_results[0]);
-results_bar.orderBars(party_order);
+createWidget(
+  model,
+  document.getElementById('population_bar'),
+  document.getElementById('demo'),
+  document.getElementById('tooltip_div'),
+  img_size,
+  grid_size,
+  'DemoTooltip',
+  result_bar_width,
+  result_bar_height,
+  result_bar_padding
+);
 
-let population_tip = new PartyAdvantageTooltip('tooltip');
-let tooltip_container = new PointedTooltipContainer(d3.select('#tooltip_div'), population_tip, 'tooltip');
-tooltip_container.updatePosition(0, 0);
-
-// ---------------------------------- APPLICATION ---------------------------------- //
-
-d3.select('#switch_grid')
-  .on('click', () => {
-    g_index = (g_index + 1) % groups.length;
-    results_bar.drawOverallResults(overall_results[g_index]);
-    results_bar.drawDistrictResults(district_results[g_index]);
-    results_bar.orderBars(party_order);
-    election_grid.plotBorders(groups[g_index]);
-  })
-  .on('mouseover', () => {
-    d3.select('#button_span').attr('class', 'button_text_hover');
-  })
-  .on('mouseout', () => {
-    d3.select('#button_span').attr('class', 'button_text');
-  });
-
-election_grid.onMouseOver((event) => {
-  tooltip_container.updatePosition(event.pageX, event.pageY);
-  tooltip_container.showTooltip();
-});
-
-election_grid.onMouseOut((event) => {
-  tooltip_container.updatePosition(event.pageX, event.pageY);
-  tooltip_container.hideTooltip();
-});
-
-election_grid.onMouseMove((event) => {
-  let grid_cell = event.gridCell;
-  let district_id = groups[g_index].getCellId(grid_cell.row, grid_cell.column);
-  tooltip_container.update(grids_stats[g_index][district_id - 1]);
-  tooltip_container.updatePosition(event.pageX, event.pageY);
-});
+let button = document.getElementById('GridButton');
+let button_span = document.getElementById('GridButtonSpan');
+button.addEventListener('click', () => { model.update(); });
+button.addEventListener('mouseover', () => { button_span.setAttribute('class', 'Hover'); });
+button.addEventListener('mouseout', () => { button_span.setAttribute('class', 'NoHover'); });
