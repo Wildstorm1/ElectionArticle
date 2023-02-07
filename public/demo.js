@@ -58,7 +58,7 @@ for (let i = 0; i < num_points; i++) {
 }
 
 let population_model = population_model_builder.build();
-let selector_model_builder = new SelectorBuilder().setPopulation(population_model);
+let selector_model_builder = new GridSelectorBuilder().setPopulation(population_model);
 let districts = new Map();
 
 for (let i = 0; i < grids.length; i++) {

@@ -37,24 +37,21 @@
 // NOTE: The adaptor/decorator pattern exist. These might help alleviate lower levels relying on specific higher level types if you
 // want something at the lower level to be reusable.
 // NOTE: Code reuse on subscribe / observer pattern?
-
-//<script src="models/party.js"></script>
-//<script src="models/groupedgrid.js"></script>
-//<script src="models/parttowhole.js"></script>
-//<script src="models/point2d.js"></script>
-//<script src="models/points.js"></script>
-//<script src="models/voterstats.js"></script>
-//<script src="models/keyordering.js"></script>
-//<script src="models/keystyling.js"></script>
-//<script src="views/electiongrid.js"></script>
-//<script src="views/comparedresults.js"></script>
-//<script src="views/partyadvantagetip.js"></script>
-//<script src="views/pointedtooltip.js"></script>
-//<script src="common.js"></script>
-//<script src="map.js"></script>
-//<script src="random.js"></script>
-//<script src="demo.js"></script>
-//<script src="methods.js"></script>
+// https://github.com/veltman/d3-stateplane
+// https://zia207.github.io/geospatial-r-github.io/map-projection-coordinate-reference-systems.html
+// https://d3-wiki.readthedocs.io/zh_CN/master/Geo-Projections/
+// http://ogre.adc4gis.com/
+// https://pureinfotech.com/extract-tar-gz-files-windows-11/
+// https://github.com/d3/d3-geo
+// https://github.com/d3/d3/blob/main/API.md#geographies-d3-geo
+// https://gdal.org/programs/ogr2ogr.html
+// https://www.d3indepth.com/enterexit/
+// https://observablehq.com/@d3/u-s-map-canvas
+// https://www.d3indepth.com/shapes/
+// https://datawanderings.com/2018/08/23/changing-dataset-projection-with-ogr2ogr/
+// 2018 Texas
+// 2012 Pennsylvania
+// 2014 Maryland
 
 // ---------------------------------- HELPER FUNCTIONS ---------------------------------- //
 
@@ -86,7 +83,7 @@ function convertArrayToModel(grid_array, square_size, district_cache) {
 }
 
 function createWidget(model, bar_parent, grid_parent, tooltip_parent, img_size, grid_size, root_id, bar_width, bar_height, bar_padding) {
-  let aggregator = new ResultAggregator(model);
+  let aggregator = new GridResultAggregator(model);
   let results_bar = new ResultBarBuilder()
     .setDOMParent(bar_parent)
     .setSubject(aggregator)
@@ -101,7 +98,7 @@ function createWidget(model, bar_parent, grid_parent, tooltip_parent, img_size, 
     .setColumns(grid_size)
     .setRows(grid_size)
     .build();
-  let district_aggregator = new DistrictAggregatorBuilder()
+  let district_aggregator = new GridDistrictAggregatorBuilder()
     .setAggregatorSubject(aggregator)
     .setDistrictSubject(grid_ui)
     .build();
@@ -117,84 +114,3 @@ function createWidget(model, bar_parent, grid_parent, tooltip_parent, img_size, 
 
   model.update();
 }
-
-/*
- * @param grid - the grouped grid which represents the geographic boundaries voters live in
- * @param population - a population points which represents voters
- * @param party - the party the population of voters belong to
- * @param district_stats - an array of voter stat objects for each district id in grid
- * @param overall_stats - a voter stat object for the overall grid
- * @effects updates the voting stat objects in district_stats and overall_stats
- * @requires the length of district_stats to match the number of ids in grid and grid ids >= 1
- * @throws Error if length of district_stats is less than the number of ids in grid or id < 1
- */
-/*function appendVoterStats(grid, population, party, district_stats, overall_stats) {
-  let voters = population.getPointsAsArray();
-  let columns = grid.getGridColumns();
-  let rows = grid.getGridRows();
-
-  for (let i = 0; i < voters.length; i++) {
-    let gi = Math.floor(voters[i].getY() * rows);
-    let gj = Math.floor(voters[i].getX() * columns);
-    let district = grid.getCellId(gi, gj);
-    
-    if (district > district_stats.length || district < 1) {
-      throw new Error('Invalid district number');
-    }
-
-    district_stats[district - 1].addVoter(party);
-    overall_stats.addVoter(party);
-  }
-}*/
-
-/*
- * @param district_stats - an array of voter stat objects for each district in a region
- * @return a PartToWhole representing the delegation breakdown
- * @requires district_stats to not be falsy, each district has at least one party, and for each
- * district to have a well defined majority party
- * @throws Error if district_stats is falsy, a district has no parties, or a district has a membership tie
- */
-/*function computeDelegation(district_stats) {
-  if (!district_stats) {
-    throw new Error('District stats is falsy!');
-  }
-
-  let ptw = new PartToWhole();
-
-  for (let i = 0; i < district_stats.length; i++) {
-    let parties = district_stats[i].getPartiesByVoters();
-
-    if (parties.length < 1) {
-      throw new Error('District has no parties!');
-    }
-
-    if (parties.length >= 2 && district_stats[i].getPartyVoters(parties[1]) >= district_stats[i].getPartyVoters(parties[0])) {
-      throw new Error('District has a tie for majority party');
-    }
-
-    let top = parties[0];
-    ptw.setPart(top, ptw.getPart(top) + 1);
-  }
-
-  return ptw;
-}*/
-
-/*
- * @param voter_stats - the voter stat object to convert
- * @return a PartToWhole recording the breakdown of voters in voter_stats
- * @requires voter_stats to not be falsy
- */
-/*function convertStatsToPartToWhole(voter_stats) {
-  if (!voter_stats) {
-    throw new Error('Voter stats is falsy!');
-  }
-
-  let parties = voter_stats.getPartiesByVoters();
-  let ptw = new PartToWhole();
-
-  for (let i = 0; i < parties.length; i++) {
-    ptw.setPart(parties[i], voter_stats.getPartyVoters(parties[i]));
-  }
-
-  return ptw;
-}*/

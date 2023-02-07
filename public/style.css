@@ -95,6 +95,16 @@ rect.Red  {
   stroke-width: 0;
 }
 
+rect.Democrat  {
+  fill: var(--blue);
+  stroke-width: 0;
+}
+
+rect.Republican  {
+  fill: var(--red);
+  stroke-width: 0;
+}
+
 text {
   dominant-baseline: middle;
   text-anchor: middle;

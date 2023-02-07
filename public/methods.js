@@ -58,8 +58,8 @@ for (let i = 0; i < m_num_points; i++) {
 
 let m_districts = new Map();
 let m_population_model = m_population_model_builder.build();
-let packed_model_builder = new SelectorBuilder().setPopulation(m_population_model);
-let cracked_model_builder = new SelectorBuilder().setPopulation(m_population_model);
+let packed_model_builder = new GridSelectorBuilder().setPopulation(m_population_model);
+let cracked_model_builder = new GridSelectorBuilder().setPopulation(m_population_model);
 
 let cracked_grid_model = convertArrayToModel(cracked_grid, m_square_size, m_districts);
 let packed_grid_model = convertArrayToModel(packed_grid, m_square_size, m_districts);

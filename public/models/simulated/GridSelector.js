@@ -1,7 +1,7 @@
 /*
  * Builds the main model for the visual
  */
-class SelectorBuilder {
+class GridSelectorBuilder {
   /*
    * The state of a voter in the grid
    */
@@ -184,7 +184,7 @@ class SelectorBuilder {
       for (const voter of this.#population) {
         let position = voter.getPosition();
         let cell = grid.computeCell(position.getX(), position.getY());
-        let state = new SelectorBuilder.#GridVoterState(voter, cell);
+        let state = new GridSelectorBuilder.#GridVoterState(voter, cell);
         voter_list.push(state);
       }
 
@@ -195,13 +195,13 @@ class SelectorBuilder {
       for (let i = 0; i < rows; i++) {
         for (let j = 0; j < columns; j++) {
           let cell = grid.getCell(i, j);
-          let state = new SelectorBuilder.#GridCellState(cell);
+          let state = new GridSelectorBuilder.#GridCellState(cell);
           cell_list.push(state);
         }
       }
 
-      this.#sendEvent('Voters', new SelectorBuilder.#GridEvent(voter_list));      
-      this.#sendEvent('GridCells', new SelectorBuilder.#GridEvent(cell_list));
+      this.#sendEvent('Voters', new GridSelectorBuilder.#GridEvent(voter_list));      
+      this.#sendEvent('GridCells', new GridSelectorBuilder.#GridEvent(cell_list));
     }
 
     /*
@@ -289,7 +289,7 @@ class SelectorBuilder {
       throw new Error('Must supply a population!');
     }
 
-    let model = new SelectorBuilder.#Selector(this.#population, this.#grids);
+    let model = new GridSelectorBuilder.#Selector(this.#population, this.#grids);
     this.#population = null;
     this.#grids = null;
     return model;

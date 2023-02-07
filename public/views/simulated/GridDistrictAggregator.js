@@ -1,7 +1,7 @@
 /*
  * Handles switching between aggregated districts
  */
-class DistrictAggregatorBuilder {
+class GridDistrictAggregatorBuilder {
   /*
    * The event that will be sent when the selected district changes or district data changes
    */
@@ -97,7 +97,7 @@ class DistrictAggregatorBuilder {
      */
     #sendEvent() {
       if (this.#district && this.#district_map.size > 0) {
-        let event = new DistrictAggregatorBuilder.#DistrictEvent(this.#district, this.#district_map.get(this.#district));
+        let event = new GridDistrictAggregatorBuilder.#DistrictEvent(this.#district, this.#district_map.get(this.#district));
         let observers = this.#observers.keys();
 
         for (const observer of observers) {
@@ -219,7 +219,7 @@ class DistrictAggregatorBuilder {
       throw new Error('The aggregator subject must be set!');
     }
 
-    let list = new DistrictAggregatorBuilder.#DistrictAggregator(this.#district_subject, this.#aggregator_subject);
+    let list = new GridDistrictAggregatorBuilder.#DistrictAggregator(this.#district_subject, this.#aggregator_subject);
 
     this.#aggregator_subject = -1;
     this.#district_subject = -1;

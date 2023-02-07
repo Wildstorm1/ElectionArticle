@@ -1,21 +1,3 @@
-// https://github.com/veltman/d3-stateplane
-// https://zia207.github.io/geospatial-r-github.io/map-projection-coordinate-reference-systems.html
-// https://d3-wiki.readthedocs.io/zh_CN/master/Geo-Projections/
-// http://ogre.adc4gis.com/
-// https://pureinfotech.com/extract-tar-gz-files-windows-11/
-// https://github.com/d3/d3-geo
-// https://github.com/d3/d3/blob/main/API.md#geographies-d3-geo
-// https://gdal.org/programs/ogr2ogr.html
-// https://www.d3indepth.com/enterexit/
-
-// https://observablehq.com/@d3/u-s-map-canvas
-// https://www.d3indepth.com/shapes/
-// https://datawanderings.com/2018/08/23/changing-dataset-projection-with-ogr2ogr/
-
-// 2018 Texas
-// 2012 Pennsylvania
-// 2014 Maryland
-
 // ---------------------------------- SETTINGS ---------------------------------- //
 
 let img_width = 1000;
@@ -23,26 +5,113 @@ let img_height = 500;
 let bar_width = 1040;
 let bar_height = 40;
 let bar_padding = 10;
-let bar_text_width = 54;
-let bar_text_padding = 3;
-let min_zoom_factor = 1;
-let max_zoom_factor = 5;
-let tooltip_width = 180;
-let tooltip_height = 120;
-let tooltip_height_padding = 20;
-let outline_color = '#094067';
-let outline_light = '#fffffe';
-let text_color = '#094067';
+
+//let min_zoom_factor = 1;
+//let max_zoom_factor = 5;
+//let tooltip_width = 180;
+//let tooltip_height = 120;
+//let tooltip_height_padding = 20;
+
+// ---------------------------------- LOAD MODELS / BUILD APP  ---------------------------------- //
+
+new Promise(function(resolve) {
+  let data_file_years = ['2012'];
+  let promises = [];
+  let data = {};
+
+  data_file_years.forEach((year) => {
+    data[`Election${year}`] = { Summary: null, Precincts: null, Districts: null };
+
+    promises.push(d3.json(`data/PrecinctResultsTopo${year}.json`).then(function(json) {
+        data[`Election${year}`].Precincts = topojson.feature(json, json.objects[`Precincts${year}`]);
+    }));
+
+    promises.push(d3.json(`data/DistrictsTopo${year}.json`).then(function(json) {
+      data[`Election${year}`].Districts = topojson.feature(json, json.objects[`Districts${year}`]);
+    }));
+
+    promises.push(d3.csv(`data/Summary${year}.csv`).then(function(csv) {
+      data[`Election${year}`].Summary = csv;
+    }));
+  });
+
+  Promise.all(promises).then(function() {
+    resolve(data);
+  });
+}).then(function(data) {
+  let major_parties = [ new Party('Democrat'), new Party('Republican') ];
+  let nc_2012_builder = new StateElectionBuilder();
+
+  for (let i = 0; i < data[`Election2012`].Precincts.features.length; i++) {
+    let precinct_data = data[`Election2012`].Precincts.features[i];
+
+    let votes = new VoteShareBuilder()
+      .setPartyAmount(major_parties[0], Number(precinct_data.properties.demvotes))
+      .setPartyAmount(major_parties[1], Number(precinct_data.properties.repvotes))
+      .build();
+
+    let precinct = new PrecinctElectionBuilder()
+      .setCounty(precinct_data.properties.county)
+      .setId(precinct_data.properties.precinct)
+      .setShapePath(precinct_data.geometry)
+      .setVoteShare(votes)
+      .build();
+
+    nc_2012_builder.addPrecinct(precinct);
+  }
+
+  for (let i = 0; i < data[`Election2012`].Districts.features.length; i++) {
+    let district_data = data[`Election2012`].Districts.features[i];
+
+    let votes = new VoteShareBuilder()
+      .setPartyAmount(major_parties[0], Number(district_data.properties.demvotes))
+      .setPartyAmount(major_parties[1], Number(district_data.properties.repvotes))
+      .build();
+
+    let district = new DistrictElectionBuilder()
+      .setWinningParty(major_parties[district_data.properties.Party === 'DEM' ? 0 : 1])
+      .setDistrictId(new District(district_data.properties.District))
+      .setShapePath(district_data.geometry)
+      .setVoteShare(votes)
+      .build();
+
+    nc_2012_builder.addDistrict(district);
+  }
+
+  let nc_2012_votes = new VoteShareBuilder()
+    .setPartyAmount(major_parties[0], Number(data[`Election2012`].Summary[0].demvotes))
+    .setPartyAmount(major_parties[1], Number(data[`Election2012`].Summary[0].repvotes))
+    .build();
+
+  nc_2012_builder.setStatewideResults(nc_2012_votes);
+  let nc_2012 = nc_2012_builder.build();
+
+  let model = new MapSelectorBuilder()
+    .addState(nc_2012)
+    .build();
+
+  let result_aggregator = new MapResultAggregator(model);
+  let map_result_bar = new ResultBarBuilder()
+    .setBarHeight(bar_height)
+    .setBarWidth(bar_width)
+    .setBarPadding(bar_padding)
+    .setDOMParent(document.getElementById('results_bar'))
+    .setSubject(result_aggregator)
+    .build();
+
+  model.update();
+});
 
 // ---------------------------------- CALCULATED VALUES ---------------------------------- //
 
-let red_color = getComputedStyle(document.documentElement).getPropertyValue('--red');
-let blue_color = getComputedStyle(document.documentElement).getPropertyValue('--blue');
-let party_color = d3.interpolateHcl(blue_color, red_color);
-let path;
+// let red_color = getComputedStyle(document.documentElement).getPropertyValue('--red');
+// let blue_color = getComputedStyle(document.documentElement).getPropertyValue('--blue');
+// let party_color = d3.interpolateHcl(blue_color, red_color);
+// let path;
 
 // ---------------------------------- HELPER FUNCTIONS ---------------------------------- //
 
+/*
 function selectColor(element) {
   let votes = element.properties.demvotes + element.properties.repvotes;
   let rper = element.properties.repvotes / votes;
@@ -58,9 +127,11 @@ function createResultsTextLabel(parent, id, xt, yt) {
     .attr('fill', text_color)
     .text('xx.x%');
 }
+*/
 
 // ---------------------------------- CORE IMAGE ---------------------------------- //
 
+/*
 let svg = d3.select('#chart')
   .style('display', 'flex')
   .style('align-items', 'center')
@@ -72,13 +143,15 @@ let g_precinct = svg.append('g')
   .attr('id', 'g_precinct');
 let g_district = svg.append('g')
   .attr('id', 'g_district');
+*/
 
 // ---------------------------------- RESULTS BAR ---------------------------------- //
 
-let result_bar = new ComparedResultsView(document.getElementById('results_bar'), bar_width, bar_height, bar_padding);
+// let result_bar = new ComparedResultsView(document.getElementById('results_bar'), bar_width, bar_height, bar_padding);
 
 // ---------------------------------- ZOOM / PAN ---------------------------------- //
 
+/*
 let zoom = d3.zoom().scaleExtent([min_zoom_factor, max_zoom_factor]).translateExtent([[0, 0], [img_width, img_height]]).on('zoom', function(event) {
   d3.select('#g_precinct')
     .attr('transform', `translate(${event.transform.x},${event.transform.y}),scale(${event.transform.k})`);
@@ -88,9 +161,11 @@ let zoom = d3.zoom().scaleExtent([min_zoom_factor, max_zoom_factor]).translateEx
 });
   
 svg.call(zoom);
+*/
 
 // ---------------------------------- CREATE TOOLTIP ---------------------------------- //
 
+/*
 let tooltip = d3.select('#chart').append('div').attr('id', 'tooltip')
   .style('position', 'absolute')
   .style('left', '0px')
@@ -106,9 +181,11 @@ tooltip_table.append('tr')
   .append('th')
   .style('border-bottom', '2px solid #ccc')
   .attr('id', 'tooltip_label');
+*/
 
 // ---------------------------------- HOVER DISTRICT EVENTS ---------------------------------- //
 
+/*
 function updateToolTipPosition(event) {
   d3.select('#tooltip')
     .style('left', `${event.pageX - (tooltip_width / 2)}px`)
@@ -170,9 +247,11 @@ function onMouseExitDistrict(event, element) {
   d3.select(`#DistrictBlock${element.properties.District}`)
     .attr('stroke', 'transparent');
 }
+*/
 
 // ---------------------------------- LOAD DATA ---------------------------------- //
 
+/*
 new Promise(function(resolve) {
   let data_file_years = ['2012'];
   let promises = [];
@@ -243,3 +322,4 @@ new Promise(function(resolve) {
   result_bar.drawDistrictResults(delegation_part_to_whole);
   result_bar.orderBars(party_order);
 });
+*/

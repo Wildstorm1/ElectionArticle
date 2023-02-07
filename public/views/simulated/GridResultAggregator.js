@@ -1,7 +1,7 @@
 /*
  * This view aggregates overall and per-district results
  */
-class ResultAggregator {
+class GridResultAggregator {
   /*
    * The event that is created when aggregated results change
    */
@@ -191,7 +191,7 @@ class ResultAggregator {
       this.#overall_results.get(max_party).num_winners++;
     }
 
-    let agg_event = new ResultAggregator.#ResultEvent(this.#district_results, this.#overall_results);
+    let agg_event = new GridResultAggregator.#ResultEvent(this.#district_results, this.#overall_results);
     this.#sendEvent(agg_event);
   }
 

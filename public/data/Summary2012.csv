@@ -1,2 +1,2 @@
-state,districts,dem_percent,rep_percent,other_percent
-North Carolina,13,50.60,48.75,0.65
+state,districts,demvotes,repvotes,libvotes
+North Carolina,13,2218357,2137167,24142
