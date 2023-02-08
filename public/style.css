@@ -73,34 +73,34 @@ rect {
   stroke-width: 0;
 }
 
-circle.Blue  {
+circle.Blue {
   fill: var(--blue);
   stroke-width: 0;
   r: var(--radius);
 }
 
-circle.Red  {
+circle.Red {
   fill: var(--red);
   stroke-width: 0;
   r: var(--radius);
 }
 
-rect.Blue  {
+rect.Blue {
   fill: var(--blue);
   stroke-width: 0;
 }
 
-rect.Red  {
+rect.Red {
   fill: var(--red);
   stroke-width: 0;
 }
 
-rect.Democrat  {
+rect.Democrat {
   fill: var(--blue);
   stroke-width: 0;
 }
 
-rect.Republican  {
+rect.Republican {
   fill: var(--red);
   stroke-width: 0;
 }
@@ -194,4 +194,19 @@ button span.NoHover {
   padding-right: 2px;
   padding-left: 2px;
   color: #5f6c7b;
+}
+
+path.Precinct {
+  stroke: #fffffe;
+  stroke-width: 0.1;
+}
+
+path.District {
+  fill: transparent;
+  stroke: #094067;
+  stroke-width: 1;
+}
+
+path.District:hover {
+  stroke: #fffffe;
 }

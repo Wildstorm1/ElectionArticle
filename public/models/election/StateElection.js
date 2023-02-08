@@ -54,13 +54,13 @@ class StateElectionBuilder {
   // Map of districts in the state
   #districts;
 
-  // Map of precincts in the state
+  // Array of precincts in the state
   #precincts;
 
   constructor() {
     this.#statewide = null;
     this.#districts = new Map();
-    this.#precincts = new Map();
+    this.#precincts = [];
   }
 
   /*
@@ -111,8 +111,7 @@ class StateElectionBuilder {
       throw new Error('Precinct is falsy!');
     }
 
-    let precinctId = precinct.getId();
-    this.#precincts.set(precinctId, precinct);
+    this.#precincts.push(precinct);
     return this;
   }
 
@@ -130,17 +129,12 @@ class StateElectionBuilder {
     }
 
     let district_array = [];
-    let precinct_array = [];
 
     for (const district_id of this.#districts.keys()) {
       district_array.push(this.#districts.get(district_id));
     }
 
-    for (const precinct_id of this.#precincts.keys()) {
-      precinct_array.push(this.#precincts.get(precinct_id));
-    }
-
-    let election = new StateElectionBuilder.#StateElection(this.#statewide, district_array, precinct_array);
+    let election = new StateElectionBuilder.#StateElection(this.#statewide, district_array, this.#precincts);
     
     this.#districts = -1;
     this.#precincts = -1;
