@@ -8,10 +8,6 @@ let bar_padding = 10;
 let min_zoom_factor = 1;
 let max_zoom_factor = 5;
 
-//let tooltip_width = 180;
-//let tooltip_height = 120;
-//let tooltip_height_padding = 20;
-
 // ---------------------------------- LOAD MODELS / BUILD APP  ---------------------------------- //
 
 new Promise(function(resolve) {
@@ -112,39 +108,19 @@ new Promise(function(resolve) {
     .setMaxZoom(max_zoom_factor)
     .build();
 
+  let district_aggregator = new DistrictAggregatorBuilder()
+    .setAggregatorSubject(result_aggregator)
+    .setDistrictSubject(map_image)
+    .build();
+  let results_list = new ElectionResultsListBuilder()
+    .setSubject(district_aggregator)
+    .build();
+  let tooltip = new TooltipContainerBuilder()
+    .setDOMParent(document.getElementById('tooltip_div'))
+    .setInnerContents(results_list)
+    .setRootCSSId('Tooltip')
+    .setSubject(map_image)
+    .build();
+
   model.update();
 });
-
-// ---------------------------------- HELPER FUNCTIONS ---------------------------------- //
-
-/*
-function createResultsTextLabel(parent, id, xt, yt) {
-  parent.append('g')
-    .attr('id', `${id}_g`)
-    .attr('transform', `translate(${xt},${yt})`)
-    .append('text')
-    .attr('id', id)
-    .attr('fill', text_color)
-    .text('xx.x%');
-}
-*/
-
-// ---------------------------------- CREATE TOOLTIP ---------------------------------- //
-
-/*
-let tooltip = d3.select('#chart').append('div').attr('id', 'tooltip')
-  .style('position', 'absolute')
-  .style('left', '0px')
-  .style('top', '0px')
-  .style('display', 'none')
-  .style('pointer-events', 'none')
-  .style('background-color', 'rgba(255, 255, 254, 0.9)')
-  .style('box-shadow', '0px 0px 6px 2px rgba(0, 0, 0, 0.28)');
-let tooltip_table = tooltip.append('table')
-  .style('width', `${tooltip_width}px`);
-tooltip_table.append('tr')
-  .append('thead')
-  .append('th')
-  .style('border-bottom', '2px solid #ccc')
-  .attr('id', 'tooltip_label');
-*/

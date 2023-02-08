@@ -119,16 +119,17 @@ class MapDisplayBuilder {
       for (let i = 0; i < districts.length; i++) {
         let district = districts[i];
         let shape_data = district.getShapePath();
+        let id = district.getDistrictId();
 
         let path = this.#g_district.append('path')
           .attr('class', 'District')
           .attr('d', generator(shape_data))
           .on('mouseover', (event) => {
             path.raise();
-            this.#sendEvent('MouseOver', event, district);
+            this.#sendEvent('MouseOver', event, id);
           })
-          .on('mouseout', (event) => { this.#sendEvent('MouseOut', event, district); })
-          .on('mousemove', (event) => { this.#sendEvent('MouseMove', event, district); });
+          .on('mouseout', (event) => { this.#sendEvent('MouseOut', event, id); })
+          .on('mousemove', (event) => { this.#sendEvent('MouseMove', event, id); });
 
         this.#districts.push(path);
       }

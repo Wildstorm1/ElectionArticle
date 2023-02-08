@@ -98,7 +98,7 @@ function createWidget(model, bar_parent, grid_parent, tooltip_parent, img_size, 
     .setColumns(grid_size)
     .setRows(grid_size)
     .build();
-  let district_aggregator = new GridDistrictAggregatorBuilder()
+  let district_aggregator = new DistrictAggregatorBuilder()
     .setAggregatorSubject(aggregator)
     .setDistrictSubject(grid_ui)
     .build();

@@ -77,7 +77,7 @@ createWidget(
   document.getElementById('tooltip_div'),
   img_size,
   grid_size,
-  'DemoTooltip',
+  'Tooltip',
   result_bar_width,
   result_bar_height,
   result_bar_padding
