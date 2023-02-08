@@ -3,64 +3,6 @@
  */
 class MapDisplayBuilder {
   /*
-   * A mouse event triggered when the mouse moves over the SVG image
-   */
-  static #MouseEvent = class {
-    // The district the mouse event was triggered under
-    #district;
-
-    // The x position the event was triggered at
-    #x_pos;
-
-    // The y position the event was triggered at
-    #y_pos;
-
-    /*
-     * @param x_pos - the x position of the event
-     * @param y_pos - the y position of the event
-     * @param district - the district of the event
-     */
-    constructor(x_pos, y_pos, district) {
-      if (!x_pos) {
-        throw new Error('x position is falsy!');
-      }
-
-      if (!y_pos) {
-        throw new Error('y position is falsy!');
-      }
-
-      if (!district) {
-        throw new Error('district is falsy!');
-      }
-
-      this.#district = district;
-      this.#x_pos = x_pos;
-      this.#y_pos = y_pos;
-    }
-
-    /*
-     * @return the district the mouse event was triggered on
-     */
-    getDistrict() {
-      return this.#district;
-    }
-
-    /*
-     * @return the x position the event was triggered at
-     */
-    getX() {
-      return this.#x_pos;
-    }
-
-    /*
-     * @return the y position the event was triggered at
-     */
-    getY() {
-      return this.#y_pos;
-    }
-  }
-
-  /*
    * An SVG layer displaying a set of state districts
    */
   static #DistrictUI = class {
@@ -96,7 +38,7 @@ class MapDisplayBuilder {
      * @param event - the mouse event that triggered us to send a new event
      */
     #sendEvent(event_name, event, district) {
-      let mouse_event = new MapDisplayBuilder.#MouseEvent(event.pageX, event.pageY, district);
+      let mouse_event = new MouseEvent(event.pageX, event.pageY, district);
       let event_map = this.#observers.get(event_name);
       let observers = event_map.keys();
 

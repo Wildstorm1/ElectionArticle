@@ -258,64 +258,6 @@ class GridDisplayBuilder {
   }
 
   /*
-   * A mouse event triggered when the mouse moves over the SVG image
-   */
-  static #MouseEvent = class {
-    // The district the mouse event was triggered under
-    #district;
-
-    // The x position the event was triggered at
-    #x_pos;
-
-    // The y position the event was triggered at
-    #y_pos;
-
-    /*
-     * @param x_pos - the x position of the event
-     * @param y_pos - the y position of the event
-     * @param district - the district of the event
-     */
-    constructor(x_pos, y_pos, district) {
-      if (!x_pos) {
-        throw new Error('x position is falsy!');
-      }
-
-      if (!y_pos) {
-        throw new Error('y position is falsy!');
-      }
-
-      if (!district) {
-        throw new Error('district is falsy!');
-      }
-
-      this.#district = district;
-      this.#x_pos = x_pos;
-      this.#y_pos = y_pos;
-    }
-
-    /*
-     * @return the district the mouse event was triggered on
-     */
-    getDistrict() {
-      return this.#district;
-    }
-
-    /*
-     * @return the x position the event was triggered at
-     */
-    getX() {
-      return this.#x_pos;
-    }
-
-    /*
-     * @return the y position the event was triggered at
-     */
-    getY() {
-      return this.#y_pos;
-    }
-  }
-
-  /*
    * A UI containing districts and points
    */
   static #GridView = class {
@@ -404,7 +346,7 @@ class GridDisplayBuilder {
       let i = Math.min(Math.floor((Math.max(0, event.offsetY) / this.#height) * this.#rows), this.#rows - 1);
       let j = Math.min(Math.floor((Math.max(0, event.offsetX) / this.#width) * this.#columns), this.#columns - 1);
       let district = this.#grid_layer.getCellValue(i, j);
-      let mouse_event = new GridDisplayBuilder.#MouseEvent(event.pageX, event.pageY, district);
+      let mouse_event = new MouseEvent(event.pageX, event.pageY, district);
 
       let event_map = this.#observers.get(event_name);
       let observers = event_map.keys();
