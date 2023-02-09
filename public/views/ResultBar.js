@@ -178,7 +178,7 @@ class ResultBarBuilder {
       this.#district_bar = new ResultBarBuilder.#SVGHorizontalBar(svg_canvas, bar_width, bar_height);
       this.#district_bar.transform(`translate(0,${bar_height + bar_padding})`);
 
-      subject.subscribe('Voters', (event) => { this.#onModelUpdate(event); });
+      subject.subscribe(this, (event) => { this.#onModelUpdate(event); });
     }
 
     /*
