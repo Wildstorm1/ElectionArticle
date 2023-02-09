@@ -76,13 +76,11 @@ rect {
 circle.Blue {
   fill: var(--blue);
   stroke-width: 0;
-  r: var(--radius);
 }
 
 circle.Red {
   fill: var(--red);
   stroke-width: 0;
-  r: var(--radius);
 }
 
 rect.Blue {
@@ -203,12 +201,14 @@ path.Precinct {
   stroke-width: 0.1;
 }
 
-path.District {
+#District.NoHover {
   fill: transparent;
   stroke: #094067;
   stroke-width: 1;
 }
 
-path.District:hover {
+#District.Hover {
+  fill: transparent;
   stroke: #fffffe;
+  stroke-width: 1;
 }

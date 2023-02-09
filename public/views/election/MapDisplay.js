@@ -54,13 +54,18 @@ class MapDisplayBuilder {
         let id = district.getDistrictId();
 
         let path = this.#g_district.append('path')
-          .attr('class', 'District')
+          .attr('id', 'District')
+          .attr('class', 'NoHover')
           .attr('d', generator(shape_data))
           .on('mouseover', (event) => {
             path.raise();
+            path.attr('class', 'Hover');
             this.#invokeEvent('MouseOver', event, id);
           })
-          .on('mouseout', (event) => { this.#invokeEvent('MouseOut', event, id); })
+          .on('mouseout', (event) => {
+            path.attr('class', 'NoHover');
+            this.#invokeEvent('MouseOut', event, id);
+          })
           .on('mousemove', (event) => { this.#invokeEvent('MouseMove', event, id); });
 
         this.#districts.push(path);

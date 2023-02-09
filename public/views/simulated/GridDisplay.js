@@ -6,6 +6,9 @@ class GridDisplayBuilder {
    * An SVG layer displaying a set of points
    */
   static #PopulationUI = class {
+    // The radius of a circle
+    #radius;
+
     // The SVG DOM group element which contains the SVG points
     #svg_group;
 
@@ -20,6 +23,8 @@ class GridDisplayBuilder {
         throw new Error('Canvas is falsy!');
       }
 
+      // Setting r via CSS is supported in SVG 2.0, but not all browsers support that
+      this.#radius = getComputedStyle(document.documentElement).getPropertyValue('--radius');
       this.#svg_group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
       this.#points = [];
       canvas.appendChild(this.#svg_group);
@@ -42,6 +47,7 @@ class GridDisplayBuilder {
         let circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
         circle.setAttribute('cx', 0);
         circle.setAttribute('cy', 0);
+        circle.setAttribute('r', 0);
   
         this.#svg_group.appendChild(circle);
         this.#points.push(circle);
@@ -59,6 +65,7 @@ class GridDisplayBuilder {
         circle.setAttribute('class', element.style);
         circle.setAttribute('cx', element.x);
         circle.setAttribute('cy', element.y);
+        circle.setAttribute('r', this.#radius);
       }
     }
 
