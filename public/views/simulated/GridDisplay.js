@@ -260,7 +260,7 @@ class GridDisplayBuilder {
   /*
    * A UI containing districts and points
    */
-  static #GridView = class {
+  static #GridView = class extends KeyedProducer {
     // The number of rows in the grid
     #rows;
 
@@ -272,9 +272,6 @@ class GridDisplayBuilder {
 
     // The width of the grid in pixels
     #width;
-
-    // A map of observers Map[event -> Map[observer, callback]]
-    #observers;
 
     // The GridUI showing districts
     #grid_layer;
@@ -311,6 +308,11 @@ class GridDisplayBuilder {
         throw new Error(`Square size ${columns} is <= 0`);
       }
 
+      super();
+      this.registerEventKey('MouseOver');
+      this.registerEventKey('MouseMove');
+      this.registerEventKey('MouseOut');
+
       this.#columns = columns;
       this.#rows = rows;
       this.#height = rows * square_size;
@@ -327,34 +329,21 @@ class GridDisplayBuilder {
       subject.subscribe('Voters', this, (event) => { this.#onVotersUpdate(event); });
       subject.subscribe('GridCells', this, (event) => { this.#onGridUpdate(event); });
 
-      let event_map = new Map();
-      event_map.set('MouseMove', new Map());
-      event_map.set('MouseOver', new Map());
-      event_map.set('MouseOut', new Map());
-      this.#observers = event_map;
-
-      svg_canvas.addEventListener('mousemove', (event) => { this.#sendEvent('MouseMove', event); });
-      svg_canvas.addEventListener('mouseout', (event) => { this.#sendEvent('MouseOut', event); });
-      svg_canvas.addEventListener('mouseover', (event) => { this.#sendEvent('MouseOver', event); });
+      svg_canvas.addEventListener('mousemove', (event) => { this.#invokeEvent('MouseMove', event); });
+      svg_canvas.addEventListener('mouseout', (event) => { this.#invokeEvent('MouseOut', event); });
+      svg_canvas.addEventListener('mouseover', (event) => { this.#invokeEvent('MouseOver', event); });
     }
 
     /*
      * @param event_name - the event name to send notifications to
      * @param event - the mouse event that triggered us to send a new event
      */
-    #sendEvent(event_name, event) {
+    #invokeEvent(event_name, event) {
       let i = Math.min(Math.floor((Math.max(0, event.offsetY) / this.#height) * this.#rows), this.#rows - 1);
       let j = Math.min(Math.floor((Math.max(0, event.offsetX) / this.#width) * this.#columns), this.#columns - 1);
       let district = this.#grid_layer.getCellValue(i, j);
       let mouse_event = new MouseEvent(event.pageX, event.pageY, district);
-
-      let event_map = this.#observers.get(event_name);
-      let observers = event_map.keys();
-
-      for (const observer of observers) {
-        let callback = event_map.get(observer);
-        callback(mouse_event);
-      }
+      this.sendEvent(event_name, mouse_event);
     }
 
     /*
@@ -399,34 +388,6 @@ class GridDisplayBuilder {
       }
 
       this.#grid_layer.update(grid);
-    }
-
-    /*
-     * @param event - the specific event to subscribe to
-     * @param observer - the object which is interested in consuming events
-     * @param callback - the function which will be called on an event
-     * @requires callback to be function(event) and event to be valid
-     */
-    subscribe(event, observer, callback) {
-      if (!this.#observers.has(event)) {
-        throw new Event('Event identifier is not valid.');
-      }
-
-      let event_listeners = this.#observers.get(event);
-      event_listeners.set(observer, callback);
-    }
-
-    /*
-     * @param event - the specific event to subscribe to
-     * @param observer - the object which is no longer interested in consuming events
-     */
-    unsubscribe(event, observer) {
-      if (!this.#observers.has(event)) {
-        throw new Event('Event identifier is not valid.');
-      }
-
-      let event_listeners = this.#observers.get(event);
-      event_listeners.remove(observer);
     }
   }
 

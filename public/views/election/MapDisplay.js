@@ -5,15 +5,12 @@ class MapDisplayBuilder {
   /*
    * An SVG layer displaying a set of state districts
    */
-  static #DistrictUI = class {
+  static #DistrictUI = class extends KeyedProducer {
     // The district layer group
     #g_district;
 
     // An array of district SVG elements
     #districts;
-
-    // A data structure containing the current observers Map[event -> Map[observer -> callback]]
-    #observers;
 
     /*
      * @param parent_node - the DOM element to attach the map to
@@ -23,11 +20,10 @@ class MapDisplayBuilder {
         throw new Error('Parent node is falsy!');
       }
 
-      let event_map = new Map();
-      event_map.set('MouseMove', new Map());
-      event_map.set('MouseOver', new Map());
-      event_map.set('MouseOut', new Map());
-      this.#observers = event_map;
+      super();
+      this.registerEventKey('MouseOut');
+      this.registerEventKey('MouseMove');
+      this.registerEventKey('MouseOver');
 
       this.#g_district = parent_node.append('g');
       this.#districts = [];
@@ -37,15 +33,9 @@ class MapDisplayBuilder {
      * @param event_name - the event name to send notifications to
      * @param event - the mouse event that triggered us to send a new event
      */
-    #sendEvent(event_name, event, district) {
+    #invokeEvent(event_name, event, district) {
       let mouse_event = new MouseEvent(event.pageX, event.pageY, district);
-      let event_map = this.#observers.get(event_name);
-      let observers = event_map.keys();
-
-      for (const observer of observers) {
-        let callback = event_map.get(observer);
-        callback(mouse_event);
-      }
+      this.sendEvent(event_name, mouse_event);
     }
 
     /*
@@ -68,10 +58,10 @@ class MapDisplayBuilder {
           .attr('d', generator(shape_data))
           .on('mouseover', (event) => {
             path.raise();
-            this.#sendEvent('MouseOver', event, id);
+            this.#invokeEvent('MouseOver', event, id);
           })
-          .on('mouseout', (event) => { this.#sendEvent('MouseOut', event, id); })
-          .on('mousemove', (event) => { this.#sendEvent('MouseMove', event, id); });
+          .on('mouseout', (event) => { this.#invokeEvent('MouseOut', event, id); })
+          .on('mousemove', (event) => { this.#invokeEvent('MouseMove', event, id); });
 
         this.#districts.push(path);
       }
@@ -85,34 +75,6 @@ class MapDisplayBuilder {
      */
     zoom(x, y, scale) {
       this.#g_district.attr('transform', `translate(${ x },${ y }),scale(${ scale })`);
-    }
-
-    /*
-     * @param event - the specific event to subscribe to
-     * @param observer - the object which is interested in consuming events
-     * @param callback - the function which will be called on an event
-     * @requires callback to be function(event) and event to be valid
-     */
-    subscribe(event, observer, callback) {
-      if (!this.#observers.has(event)) {
-        throw new Event('Event identifier is not valid.');
-      }
-
-      let event_listeners = this.#observers.get(event);
-      event_listeners.set(observer, callback);
-    }
-
-    /*
-     * @param event - the specific event to subscribe to
-     * @param observer - the object which is no longer interested in consuming events
-     */
-    unsubscribe(event, observer) {
-      if (!this.#observers.has(event)) {
-        throw new Event('Event identifier is not valid.');
-      }
-
-      let event_listeners = this.#observers.get(event);
-      event_listeners.remove(observer);
     }
   }
 
@@ -185,10 +147,7 @@ class MapDisplayBuilder {
   /*
    * A UI containing districts and precincts
    */
-  static #MapView = class {
-    // A data structure containing the current observers Map[event -> Map[observer -> callback]]
-    #observers;
-
+  static #MapView = class extends KeyedProducer {
     // The svg canvas
     #svg;
 
@@ -243,6 +202,11 @@ class MapDisplayBuilder {
         throw new Error('Max zoom must be >= 1!');
       }
 
+      super();
+      this.registerEventKey('MouseMove');
+      this.registerEventKey('MouseOver');
+      this.registerEventKey('MouseOut');
+
       this.#svg = parent_node.append('svg')
         .attr('width', width)
         .attr('height', height);
@@ -252,17 +216,11 @@ class MapDisplayBuilder {
       this.#height = height;
       this.#width = width;
 
-      this.#district_layer.subscribe('MouseMove', this, (event) => { this.#sendEvent('MouseMove', event); });
-      this.#district_layer.subscribe('MouseOver', this, (event) => { this.#sendEvent('MouseOver', event); });
-      this.#district_layer.subscribe('MouseOut', this, (event) => { this.#sendEvent('MouseOut', event); });
-      subject.subscribe('Districts', this, (event) => { this.#updateDistricts(event); });
-      subject.subscribe('Precincts', this, (event) => { this.#updatePrecincts(event); });
-
-      let event_map = new Map();
-      event_map.set('MouseMove', new Map());
-      event_map.set('MouseOver', new Map());
-      event_map.set('MouseOut', new Map());
-      this.#observers = event_map;
+      this.#district_layer.subscribe('MouseMove', this, (event) => { this.sendEvent('MouseMove', event); });
+      this.#district_layer.subscribe('MouseOver', this, (event) => { this.sendEvent('MouseOver', event); });
+      this.#district_layer.subscribe('MouseOut', this, (event) => { this.sendEvent('MouseOut', event); });
+      subject.subscribe('Districts', this, (event) => { this.#updateLayer(event, this.#district_layer); });
+      subject.subscribe('Precincts', this, (event) => { this.#updateLayer(event, this.#precinct_layer); });
 
       let zoom = d3.zoom().scaleExtent([min_zoom, max_zoom]).translateExtent([[0, 0], [width, height]]).on('zoom', (event) => {
         this.#precinct_layer.zoom(event.transform.x, event.transform.y, event.transform.k);
@@ -274,82 +232,22 @@ class MapDisplayBuilder {
 
     /*
      * @param event - the event produced on a model update
+     * @param layer - the UI layer to update
      */
-    #updateDistricts(event) {
+    #updateLayer(event, layer) {
       let feature_collection = { type: "FeatureCollection", features: [] };
-      let districts = [];
+      let units = [];
 
-      for (const district_event of event) {
-        let district = district_event.getDistrict();
-        feature_collection.features.push({ type: "Feature", geometry: district.getShapePath(), properties: {} });
-        districts.push(district);
+      for (const state_event of event) {
+        let unit = state_event.getElectoralUnit();
+        feature_collection.features.push({ type: "Feature", geometry: unit.getShapePath(), properties: {} });
+        units.push(unit);
       }
 
       let projection = d3.geoAlbers().fitSize([this.#width, this.#height], feature_collection);
       let generator = d3.geoPath().projection(projection);
 
-      this.#district_layer.update(districts, generator);
-    }
-
-    /*
-     * @param event - the event produced on a model update
-     */
-    #updatePrecincts(event) {
-      let feature_collection = { type: "FeatureCollection", features: [] };
-      let precincts = [];
-
-      for (const precinct_event of event) {
-        let precinct = precinct_event.getPrecinct();
-        feature_collection.features.push({ type: "Feature", geometry: precinct.getShapePath(), properties: {} });
-        precincts.push(precinct);
-      }
-
-      let projection = d3.geoAlbers().fitSize([this.#width, this.#height], feature_collection);
-      let generator = d3.geoPath().projection(projection);
-
-      this.#precinct_layer.update(precincts, generator);
-    }
-
-    /*
-     * @param event_name - the event name to send notifications to
-     * @param event - the mouse event that triggered us to send a new event
-     */
-    #sendEvent(event_name, event) {
-      let event_map = this.#observers.get(event_name);
-      let observers = event_map.keys();
-
-      for (const observer of observers) {
-        let callback = event_map.get(observer);
-        callback(event);
-      }
-    }
-
-    /*
-     * @param event - the specific event to subscribe to
-     * @param observer - the object which is interested in consuming events
-     * @param callback - the function which will be called on an event
-     * @requires callback to be function(event) and event to be valid
-     */
-    subscribe(event, observer, callback) {
-      if (!this.#observers.has(event)) {
-        throw new Event('Event identifier is not valid.');
-      }
-
-      let event_listeners = this.#observers.get(event);
-      event_listeners.set(observer, callback);
-    }
-
-    /*
-     * @param event - the specific event to subscribe to
-     * @param observer - the object which is no longer interested in consuming events
-     */
-    unsubscribe(event, observer) {
-      if (!this.#observers.has(event)) {
-        throw new Event('Event identifier is not valid.');
-      }
-
-      let event_listeners = this.#observers.get(event);
-      event_listeners.remove(observer);
+      layer.update(units, generator);
     }
   }
 

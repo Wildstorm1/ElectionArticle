@@ -121,12 +121,14 @@ text {
   position: absolute;
   pointer-events: none;
   display: block;
+  visibility: visible;
 }
 
 #Tooltip.Invisible {
   position: absolute;
   pointer-events: none;
-  display: none;
+  display: block;
+  visibility: hidden;
 }
 
 #Tooltip .Wrapper {

@@ -74,7 +74,7 @@ class GridSelectorBuilder {
    * The main model, a population of voters and a list of grids. This model cycles though a fixed
    * set of grids with a fixed population.
    */
-  static #Selector = class {
+  static #Selector = class extends KeyedProducer {
     // An array containing all grids that can be cycled though
     #grid_array;
 
@@ -83,9 +83,6 @@ class GridSelectorBuilder {
 
     // The population of voters
     #population;
-
-    // A data structure containing the current observers Map[event -> Map[observer -> callback]]
-    #observers;
 
     /*
      * @param population - the population of voters
@@ -100,29 +97,13 @@ class GridSelectorBuilder {
         throw new Error('Grids is falsy!');
       }
 
+      super();
+      this.registerEventKey('GridCells');
+      this.registerEventKey('Voters');
+
       this.#grid_array = grids;
       this.#grid_index = -1;
       this.#population = population;
-
-      let event_map = new Map();
-      event_map.set('GridCells', new Map());
-      event_map.set('Voters', new Map());
-
-      this.#observers = event_map;
-    }
-
-    /*
-     * @param event_name - the name defining the handler to invoke
-     * @param event - the event object to send
-     */
-    #sendEvent(event_name, event) {
-      let event_map = this.#observers.get(event_name);
-      let observers = event_map.keys();
-
-      for (const observer of observers) {
-        let callback = event_map.get(observer);
-        callback(event);
-      }
     }
 
     /*
@@ -152,37 +133,8 @@ class GridSelectorBuilder {
         }
       }
 
-      this.#sendEvent('Voters', new StateChangeEvent(voter_list));      
-      this.#sendEvent('GridCells', new StateChangeEvent(cell_list));
-    }
-
-    /*
-     * @param event - the event to subscribe to
-     * @param observer - the object which is interested in consuming events
-     * @param callback - the function which will be called on an event
-     * @requires event to be 'GridCells', or 'Voters' and callback to be function(event)
-     */
-    subscribe(event, observer, callback) {
-      if (!this.#observers.has(event)) {
-        throw new Event('Event identifier is not valid.');
-      }
-
-      let event_listeners = this.#observers.get(event);
-      event_listeners.set(observer, callback);
-    }
-
-    /*
-     * @param event - the event to unsubscribe from
-     * @param observer - the object which is no longer interested in consuming events
-     * @requires event to be 'GridCells', or 'Voters' and observer to be object supplied to subscribe
-     */
-    unsubscribe(event, observer) {
-      if (!this.#observers.has(event)) {
-        throw new Event('Event identifier is not valid.');
-      }
-
-      let event_listeners = this.#observers.get(event);
-      event_listeners.remove(observer);
+      this.sendEvent('Voters', new StateChangeEvent(voter_list));      
+      this.sendEvent('GridCells', new StateChangeEvent(cell_list));
     }
   }
 

@@ -1,10 +1,7 @@
 /*
  * This view aggregates overall and per-district results
  */
-class GridResultAggregator {
-  // A data structure containing the current observers Map[observer -> callback]
-  #observers;
-
+class GridResultAggregator extends Producer {
   // A map of overall results Map[party -> count]
   #overall_results;
 
@@ -19,23 +16,11 @@ class GridResultAggregator {
       throw new Error('Subject is falsy!');
     }
 
-    this.#observers = new Map();
+    super();
     this.#overall_results = new Map();
     this.#district_results = new Map();
 
     subject.subscribe('Voters', this, (event) => { this.#onModelUpdate(event); });
-  }
-
-  /*
-   * @param event - the event to send
-   */
-  #sendEvent(event) {
-    let observers = this.#observers.keys();
-
-    for (const observer of observers) {
-      let callback = this.#observers.get(observer);
-      callback(event);
-    }
   }
 
   /*
@@ -100,22 +85,6 @@ class GridResultAggregator {
     }
 
     let agg_event = new ResultEvent(this.#district_results, this.#overall_results);
-    this.#sendEvent(agg_event);
-  }
-
-  /*
-   * @param observer - the object which is interested in consuming events
-   * @param callback - the function which will be called on an event
-   * @requires callback to be function(event)
-   */
-  subscribe(observer, callback) {
-    this.#observers.set(observer, callback);
-  }
-
-  /*
-   * @param observer - the object which is no longer interested in consuming events
-   */
-  unsubscribe(observer) {
-    this.#observers.delete(observer);
+    this.sendEvent(agg_event);
   }
 }

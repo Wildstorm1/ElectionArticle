@@ -5,10 +5,7 @@ class DistrictAggregatorBuilder {
   /*
    * The aggregator
    */
-  static #DistrictAggregator = class {
-    // A data structure containing the current observers Map[observer -> callback]
-    #observers;
-
+  static #DistrictAggregator = class extends Producer {
     // The current district being displayed
     #district;
 
@@ -28,7 +25,7 @@ class DistrictAggregatorBuilder {
         throw new Error('Aggregator subject falsy!');
       }
 
-      this.#observers = new Map();
+      super();
       this.#district = null;
       this.#district_map = new Map();
 
@@ -41,15 +38,10 @@ class DistrictAggregatorBuilder {
     /*
      * @effects sends an update to all observers
      */
-    #sendEvent() {
+    #invokeEvent() {
       if (this.#district && this.#district_map.size > 0) {
         let event = new DistrictEvent(this.#district, this.#district_map.get(this.#district));
-        let observers = this.#observers.keys();
-
-        for (const observer of observers) {
-          let callback = this.#observers.get(observer);
-          callback(event);
-        }
+        this.sendEvent(event);
       }
     }
 
@@ -68,7 +60,7 @@ class DistrictAggregatorBuilder {
         }
       }
 
-      this.#sendEvent();
+      this.#invokeEvent();
     }
 
     /*
@@ -79,24 +71,8 @@ class DistrictAggregatorBuilder {
 
       if (district !== this.#district) {
         this.#district = district;
-        this.#sendEvent();
+        this.#invokeEvent();
       }
-    }
-
-    /*
-     * @param observer - the object which is interested in consuming events
-     * @param callback - the function which will be called on an event
-     * @requires callback to be function(event)
-     */
-    subscribe(observer, callback) {
-      this.#observers.set(observer, callback);
-    }
-
-    /*
-     * @param observer - the object which is no longer interested in consuming events
-     */
-    unsubscribe(observer) {
-      this.#observers.delete(observer);
     }
   }
 
